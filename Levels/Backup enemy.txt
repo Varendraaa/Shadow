@@ -1,0 +1,384 @@
+#pragma once
+#ifndef ENEMY_H
+#define ENEMY_H
+
+#include <glm/glm.hpp>
+#include <string>
+#include <vector>
+#include <glad/glad.h>
+#include "Shader.h"
+#include "Pathfinding.h"
+#include "TmxParser.h"
+
+enum AnimationState
+{
+	WALK,
+	ATTACK,
+	DEATH
+};
+
+struct AnimationFrame
+{
+    GLuint textureID;
+    int duration;
+};
+
+class Enemy 
+{
+public:
+    // Constructor that creates Enemy at specified position
+	Enemy(const glm::vec3& position);           
+    
+    void render(const glm::mat4& view, const glm::mat4& projection, Shader& shader);
+    void update(float deltaTime);
+	void setState(AnimationState state);
+
+    bool checkCollision(const glm::vec3& newPosition, const TileLayer& wallLayer);
+    
+	// Getters and Setters for pathfinding positions
+    glm::vec3 getPosition() const { return position; }
+    glm::vec3 setPosition(const glm::vec3& newPosition) { return position = newPosition; }
+
+	// Getters and Setters for enemy combat properties
+    bool isAlive() const;
+	void takeDamage(int damage);
+    
+    bool isInAttackRange(const glm::vec3& targetPosition, float attackRange);
+	void attackPlayer(int& playerHealth, float attackProbability);
+
+private:
+	// Enemy properties
+    glm::vec3 position;
+    glm::vec3 size;
+    int health;
+    bool isDead;
+
+	// Enemy animations
+	AnimationState currentState;
+
+    static vector<AnimationFrame> walkFrames;
+    static vector<AnimationFrame> attackFrames;
+    static vector<AnimationFrame> deathFrames;
+    static bool texturesLoaded;
+    
+    int currentFrame;
+    float animationTime;
+    float animationSpeed;
+
+	// Pathfinding
+	//Pathfinding pathfinder;
+	//vector<glm::vec2> path;
+ //   int pathIndex;
+
+	// Rendering
+
+    GLuint VAO, VBO, EBO, textureID;    
+
+    void loadTexture();
+    void setupMesh();
+
+    void loadAnimationFrames(vector<AnimationFrame>& frames, const vector<string>& texturePaths, const vector<int>& frameDurations);
+};
+
+#endif // ENEMY_H
+
+
+
+
+#include "Enemy.h"
+#include "Texture.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
+
+//Define the static member variables
+vector<AnimationFrame> Enemy::walkFrames;
+vector<AnimationFrame> Enemy::attackFrames;
+vector<AnimationFrame> Enemy::deathFrames;
+bool Enemy::texturesLoaded = false;
+
+
+Enemy::Enemy(const glm::vec3& position) :
+    position(position), 
+	size(glm::vec3(1.5f, 1.5f, 1.5f)),          // Adjust the size of the enemy
+	health(500),
+	currentFrame(0),
+	animationTime(0.0f),
+	animationSpeed(0.1f),
+	currentState(AnimationState::WALK),
+	isDead(false)
+{
+	if (!texturesLoaded)
+    {
+        loadTexture();
+    }
+    setupMesh();
+}
+
+void Enemy::loadTexture() 
+{
+	// Load the textures for the enemy
+    // Walk Animation Frames
+    vector<string> walkTextures =
+    {
+        "Sprites/Soldier/Walk1.png",
+		"Sprites/Soldier/Walk2.png",
+		"Sprites/Soldier/Walk3.png",
+		"Sprites/Soldier/Walk4.png"
+        /*"Sprites/Monster/0001.png",
+        "Sprites/Monster/0002.png",
+        "Sprites/Monster/0003.png",
+        "Sprites/Monster/0004.png",
+        "Sprites/Monster/0005.png",
+        "Sprites/Monster/0006.png",
+        "Sprites/Monster/0007.png",
+        "Sprites/Monster/0008.png",
+        "Sprites/Monster/0009.png",
+        "Sprites/Monster/0010.png"*/
+    };
+	vector<int> walkframeDuration = { 100, 100, 100, 100 /*200, 200, 200, 200, 200, 200*/ };
+
+	// Attack Animation Frames
+    vector<string> attackTextures =
+    {
+		"Sprites/Soldier/Attack1.png",
+		"Sprites/Soldier/Attack2.png"
+    };
+	vector<int> attackframeDuration = { 100, 100 };
+
+	// Death Animation Frames
+    vector<string> deathTextures =
+    {
+		"Sprites/Soldier/Death1.png",
+		"Sprites/Soldier/Death2.png",
+		"Sprites/Soldier/Death3.png",
+		"Sprites/Soldier/Death4.png",
+		"Sprites/Soldier/Death5.png"
+    };
+	vector<int> deathframeDuration = { 100, 100, 100, 100, 100 };
+
+    // Load Animation Frames
+	loadAnimationFrames(walkFrames, walkTextures, walkframeDuration);
+	loadAnimationFrames(attackFrames, attackTextures, attackframeDuration);
+	loadAnimationFrames(deathFrames, deathTextures, deathframeDuration);
+
+	texturesLoaded = true;
+}
+
+// Function to load the animation Frames
+void Enemy::loadAnimationFrames(vector<AnimationFrame>& frames, const vector<string>& texturePaths, const vector<int>& frameDurations)
+{
+    if (texturePaths.size() != frameDurations.size()) 
+    {
+        std::cerr << "Texture paths and frame durations must be the same length" << std::endl;
+        return;
+    }
+
+    for (size_t i = 0; i < texturePaths.size(); ++i) 
+    {
+        AnimationFrame frame;
+        frame.textureID = TextureLoader::LoadTexture(texturePaths[i]);
+        if (frame.textureID == 0) {
+            std::cerr << "Failed to load texture: " << texturePaths[i] << std::endl;
+            continue;
+        }
+        frame.duration = frameDurations[i];
+        frames.push_back(frame);
+    }
+}
+
+
+
+
+void Enemy::setupMesh() {
+    float vertices[] = {
+        // positions          // texture coords
+         0.5f,  1.0f, 0.0f,   1.0f, 1.0f,   // Top Right
+         0.5f,  0.0f, 0.0f,   1.0f, 0.0f,   // Bottom Right
+        -0.5f,  0.0f, 0.0f,   0.0f, 0.0f,   // Bottom Left
+        -0.5f,  1.0f, 0.0f,   0.0f, 1.0f    // Top Left
+    };
+    unsigned int indices[] = {
+        0, 1, 3,
+        1, 2, 3
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // Texture coordinates attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+}
+
+void Enemy::render(const glm::mat4& view, const glm::mat4& projection, Shader& shader) 
+{
+    if (walkFrames.empty() || attackFrames.empty() || deathFrames.empty()) return;
+
+    glBindVertexArray(VAO);
+
+    GLuint currentTextureID;
+    switch (currentState)
+    {
+	case AnimationState::WALK:
+		currentTextureID = walkFrames[currentFrame].textureID;
+		break;
+
+	case AnimationState::ATTACK:
+		currentTextureID = attackFrames[currentFrame].textureID;
+		break;
+
+	case AnimationState::DEATH:
+		currentTextureID = deathFrames[currentFrame].textureID;
+		break;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, currentTextureID);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+   
+    // Billboarding: Make the quad face the camera
+    glm::vec3 camRight = glm::vec3(view[0][0], view[1][0], view[2][0]);
+    glm::vec3 camUp = glm::vec3(view[0][1], view[1][1], view[2][1]);
+    glm::vec3 lookAt = glm::normalize(position - glm::vec3(view[3])); // Camera position is the inverse of the view matrix's translation
+
+    glm::mat4 billboard = glm::mat4(1.0f);
+    billboard[0] = glm::vec4(camRight, 0.0f);
+    billboard[1] = glm::vec4(camUp, 0.0f);
+    billboard[2] = glm::vec4(lookAt, 0.0f);
+
+    model *= billboard;
+    
+    model = glm::scale(model, size);
+
+    shader.Use();
+    shader.SetMat4("model", model);
+    shader.SetMat4("view", view);
+    shader.SetMat4("projection", projection);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Enemy::update(float deltaTime) 
+{
+	if (walkFrames.empty() || attackFrames.empty() || deathFrames.empty()) return;
+
+	animationTime += deltaTime * 1000; // Convert deltaTime to milliseconds
+	
+    vector<AnimationFrame>& currentframes = (currentState == AnimationState::WALK) ? walkFrames :
+    (currentState == AnimationState::ATTACK) ? attackFrames : deathFrames;
+
+	if (animationTime >= currentframes[currentFrame].duration)
+    {
+		if (currentState == AnimationState::DEATH && currentFrame == currentframes.size() - 1)
+		{
+			//Stop on the last frame of the death animation
+			return;
+		}
+		currentFrame = (currentFrame + 1) % currentframes.size();
+		animationTime = 0.0f;
+	}
+
+    if (isDead) return;
+}
+
+void Enemy::setState(AnimationState newState)
+{
+    if (currentState != newState) 
+{
+        currentState = newState;
+        currentFrame = 0;
+        animationTime = 0.0f;
+    }
+}
+
+bool Enemy::checkCollision(const glm::vec3& newPosition, const TileLayer& wallLayer) 
+{
+    glm::vec3 enemyMin = newPosition - size / 2.0f;
+    glm::vec3 enemyMax = newPosition + size / 2.0f;
+
+    for (int z = 0; z < wallLayer.height; ++z)
+    {
+        for (int x = 0; x < wallLayer.width; ++x)
+        {
+            if (wallLayer.data[z * wallLayer.width + x] != 0)		// There is a wall tile here
+            {
+                glm::vec3 wallMin(x, 0.0f, z);
+                glm::vec3 wallMax(x + 1.0f, 2.0f, z + 1.0f);		// Change y value to match wall height
+
+                if ((enemyMin.x < wallMax.x && enemyMax.x > wallMin.x) &&
+                    (enemyMin.y < wallMax.y && enemyMax.y > wallMin.y) &&
+                    (enemyMin.z < wallMax.z && enemyMax.z > wallMin.z))
+                {
+                    return true;		// Collision detected
+                }
+            }
+        }
+    }
+    return false;	// No collision detected	
+}
+
+bool Enemy::isAlive() const
+{
+	return health > 0;
+}
+
+void Enemy::takeDamage(int damage)
+{
+	health -= damage;
+	if (health <= 0)
+	{
+        health = 0;
+		isDead = true;		
+	}
+}
+
+bool Enemy::isInAttackRange(const glm::vec3& targetPosition, float attackRange)
+{
+    float distance = glm::distance(position, targetPosition);
+    if (distance <= attackRange)                // Checks if condition is met to return true or false
+    {
+        return true;
+    }
+    return false;
+}
+
+
+void Enemy::attackPlayer(int& playerHealth, float attackProbability)
+{
+	if (rand() % 10 < (attackProbability * 100))         // Adjust probability as necessary
+    {
+		playerHealth -= 10;                             // Adjust damage dealt to player as necessary
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
