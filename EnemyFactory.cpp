@@ -66,7 +66,7 @@ Enemy createSoldier(const glm::vec3& position)
 		deathFrames = loadFrames(deathTextures, deathDurations);
 	}
 	// Enemy Parameters
-	int health = 60;
+	int health = 20;
 	float size = 1.5f;
 	int damage = 5;
 

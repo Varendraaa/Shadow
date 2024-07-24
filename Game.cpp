@@ -9,11 +9,17 @@ Game::Game() :
 	shaderprogram(nullptr),
 	level(nullptr),
 	hud(nullptr),
-	currentState(GameState::TITLE),
+	currentState(GameState::MENU),
 	deltaTime(0.0f),
 	lastFrame(0.0f),
 	lastX(0.0f),
 	lastY(0.0f),
+	allEnemiesDead(false),
+	winStateDelay(2.0f), // Delay of 2 seconds
+	winStateTimer(0.0f),
+	playerDead(false),
+	gameOverDelay(2.0f), // Delay of 2 seconds
+	gameOverTimer(0.0f),
 	firstMouse(true)
 {
 	std::memset(keys, 0, sizeof(keys)); // Initialize all key states to false
@@ -51,9 +57,7 @@ bool Game::initialise()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui::StyleColorsDark();
-
-	/* Setup Platform/Renderer bindings*/
+	ImGui::StyleColorsDark();	
 	ImGui_ImplGlfw_InitForOpenGL(m_window->getWindow(), true);
 	ImGui_ImplOpenGL3_Init("#version 400");
 
@@ -99,10 +103,230 @@ bool Game::initialise()
 		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::AMMO));
 	}
 	/*Load the Title and Instruction Screen*/
-	
+	menuTexture = TextureLoader::LoadTexture("Textures/TitleScreen.png");
+	winTexture = TextureLoader::LoadTexture("Textures/LevelClear.png");
+	gameOverTexture = TextureLoader::LoadTexture("Textures/GameOver.png");
 
 	return true;
 }
+
+void Game::Render()
+{
+	switch (currentState)
+	{
+	case GameState::MENU:
+		RenderMenu();
+		break;
+
+	case GameState::GAMEPLAY:
+		RenderGameplay();
+		break;
+
+	case GameState::WIN:
+		RenderWinScreen();
+		break;
+
+	case GameState::GAMEOVER:
+		RenderGameOverScreen();
+		break;
+	}
+}
+
+void Game::Update()
+{
+	switch (currentState)
+	{
+	case GameState::MENU:
+		UpdateMenu();
+		break;
+
+	case GameState::GAMEPLAY:
+		UpdateGameplay();
+		break;
+
+	case GameState::WIN:
+		UpdateWinScreen();
+		break;
+
+	case GameState::GAMEOVER:
+		UpdateGameOverScreen();
+		break;
+	}
+}
+
+void Game::RenderMenu()
+{	
+	// Render the Menu Screen
+	//Start the ImGUI frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// Get window size
+	GLint display_w, display_h;
+	glfwGetFramebufferSize(m_window->getWindow(), &display_w, &display_h);
+
+	// Render the Menu Screen
+	ImGui::Begin("Title Screen", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+	ImGui::SetWindowPos(ImVec2(0, 0));
+	ImGui::SetWindowSize(ImVec2((GLfloat)display_w, (GLfloat)display_h));
+
+	// UV coordinates for flipping the image
+	ImVec2 uv0 = ImVec2(0.0f, 1.0f); // Bottom-left corner
+	ImVec2 uv1 = ImVec2(1.0f, 0.0f); // Top-right corner
+
+	// Render the Image
+	ImGui::Image((void*)(intptr_t)menuTexture, ImVec2((GLfloat)display_w, (GLfloat)display_h), uv0, uv1);
+
+	ImGui::End();
+
+	// Render the ImGUI frame
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+}
+
+void Game::RenderGameplay()
+{
+	// Clear the color and depth buffers
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Use the shader Program
+	shaderprogram->Use();
+
+	/*Initialises matrices to identity matrix so that they aren't null*/
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view = glm::mat4(1.0f);
+	glm::mat4 projection = glm::mat4(1.0f);
+
+	view = m_player->GetViewMatrix();
+	projection = m_player->GetProjectionMatrix();
+
+	/*Input matrices into the vertex shader as uniforms*/
+	shaderprogram->SetMat4("view", view);
+	shaderprogram->SetMat4("projection", projection);
+	shaderprogram->SetMat4("model", model);
+
+	level->draw();			// Render the level mesh
+
+	for (Enemy& enemy : enemies)
+	{
+		enemy.render(view, projection, *shaderprogram);
+	}
+
+	// Render items
+	for (auto& item : items)
+	{
+		item.render(view, projection, *shaderprogram);
+	}
+
+	m_player->RenderWeapon(*shaderprogram);
+
+	// Render HUD
+	hud->Render();
+}
+
+void Game::RenderWinScreen()
+{
+	// Clear the screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Render the Win Screen
+	//Start the ImGUI frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// Get window size
+	GLint display_w, display_h;
+	glfwGetFramebufferSize(m_window->getWindow(), &display_w, &display_h);
+
+	// Render the Menu Screen
+	ImGui::Begin("Title Screen", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+	ImGui::SetWindowPos(ImVec2(0, 0));
+	ImGui::SetWindowSize(ImVec2((GLfloat)display_w, (GLfloat)display_h));
+
+	// UV coordinates for flipping the image
+	ImVec2 uv0 = ImVec2(0.0f, 1.0f); // Bottom-left corner
+	ImVec2 uv1 = ImVec2(1.0f, 0.0f); // Top-right corner
+
+	// Render the Image
+	ImGui::Image((void*)(intptr_t)winTexture, ImVec2((GLfloat)display_w, (GLfloat)display_h), uv0, uv1);
+
+	ImGui::End();
+
+	// Render the ImGUI frame
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Game::RenderGameOverScreen()
+{
+	// Clear the screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Render the Game Over Screen
+	//Start the ImGUI frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// Get window size
+	GLint display_w, display_h;
+	glfwGetFramebufferSize(m_window->getWindow(), &display_w, &display_h);
+
+	// Render the Menu Screen
+	ImGui::Begin("Title Screen", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+	ImGui::SetWindowPos(ImVec2(0, 0));
+	ImGui::SetWindowSize(ImVec2((GLfloat)display_w, (GLfloat)display_h));
+
+	// UV coordinates for flipping the image
+	ImVec2 uv0 = ImVec2(0.0f, 1.0f); // Bottom-left corner
+	ImVec2 uv1 = ImVec2(1.0f, 0.0f); // Top-right corner
+
+	// Render the Image
+	ImGui::Image((void*)(intptr_t)gameOverTexture, ImVec2((GLfloat)display_w, (GLfloat)display_h), uv0, uv1);
+
+	ImGui::End();
+
+	// Render the ImGUI frame
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+
+void Game::UpdateMenu()
+{
+	// Update the Menu Screen
+	if (keys[GLFW_KEY_ENTER])
+	{
+		currentState = GameState::GAMEPLAY;
+	
+	}
+}
+
+void Game::UpdateWinScreen()
+{
+	// Update the Win Screen
+	if (keys[GLFW_KEY_ENTER]) 
+	{
+		ResetGame();
+		//currentState = GameState::MENU;
+	}
+}
+
+void Game::UpdateGameOverScreen()
+{
+	// Update the Game Over Screen
+	if (keys[GLFW_KEY_ENTER]) 
+	{
+		ResetGame();
+		//currentState = GameState::MENU;
+	}
+}
+
+
 
 void Game::Run()
 {
@@ -151,47 +375,6 @@ void Game::Cleanup()
 		
 }
 
-void Game::Render()
-{
-	// Clear the color and depth buffers
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Use the shader Program
-	shaderprogram->Use();
-
-	/*Initialises matrices to identity matrix so that they aren't null*/
-	glm::mat4 model = glm::mat4(1.0f);
-	glm::mat4 view = glm::mat4(1.0f);
-	glm::mat4 projection = glm::mat4(1.0f);
-
-	view = m_player->GetViewMatrix();
-	projection = m_player->GetProjectionMatrix();
-
-	/*Input matrices into the vertex shader as uniforms*/
-	shaderprogram->SetMat4("view", view);
-	shaderprogram->SetMat4("projection", projection);
-	shaderprogram->SetMat4("model", model);
-
-	level->draw();			// Render the level mesh
-	
-	for (Enemy& enemy : enemies) 
-	{
-		enemy.render(view, projection, *shaderprogram);
-	}
-
-	// Render items
-	for (auto& item : items) 
-	{
-		item.render(view, projection, *shaderprogram);
-	}
-
-	m_player->RenderWeapon(*shaderprogram);
-	
-	// Render HUD
-	hud->Render();
-}
-
-
 
 void Game::ProcessInput(float deltaTime)
 {
@@ -213,30 +396,34 @@ void Game::ProcessInput(float deltaTime)
 	}
 		
 	/* Process Player Input with collision detection*/
-	TileLayer wallLayer = map->getLayer("Walls");
-	m_player->ProcessPlayerInput(keys, deltaTime, wallLayer);
-	
-	double xpos, ypos;
-	glfwGetCursorPos(glfwWindow, &xpos, &ypos);
-	if (firstMouse)
+	if (currentState == GameState::GAMEPLAY)
 	{
+		TileLayer wallLayer = map->getLayer("Walls");
+		m_player->ProcessPlayerInput(keys, deltaTime, wallLayer);
+
+		double xpos, ypos;
+		glfwGetCursorPos(glfwWindow, &xpos, &ypos);
+		if (firstMouse)
+		{
+			lastX = xpos;
+			lastY = ypos;
+			firstMouse = false;
+		}
+
+		float xoffset = xpos - lastX;
+		float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
 		lastX = xpos;
 		lastY = ypos;
-		firstMouse = false;
+
+		m_player->ProcessMouseMovement(xoffset, yoffset);
 	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-	lastX = xpos;
-	lastY = ypos;
-
-	m_player->ProcessMouseMovement(xoffset, yoffset);
 }
 
 
-void Game::Update()
+void Game::UpdateGameplay()
 {
 	float currentTime = glfwGetTime();
+	bool allEnemiesDead = true;
 
 	// Initial Pathfinding Setup
 	glm::ivec2 playerPos = glm::ivec2(m_player->GetPosition().x, m_player->GetPosition().z);
@@ -255,16 +442,18 @@ void Game::Update()
 			continue;
 		}
 
+		allEnemiesDead = false;
+
 		// Check for Line of Sight to player
 		glm::ivec2 enemyPos = glm::ivec2(enemy.getPosition().x, enemy.getPosition().z);
 		
 		if (pathfinder.hasLineOfSight(enemyPos, playerPos, wallLayer))
 		{
 			// If enemy is in attack range, attack player
-			if (enemy.isInAttackRange(m_player->GetPosition(), 5.0f))	// Adjust this value as necessary for range
+			if (enemy.isInAttackRange(m_player->GetPosition(), 5.0f))		// Adjust this value as necessary for attack range
 			{
 				enemy.setState(AnimationState::ATTACK);
-				enemy.attackPlayer(m_player->health, 0.1f, currentTime);					// Adjust probability as 
+				enemy.attackPlayer(m_player->health, 0.1f, currentTime);	// Adjust probability as 
 
 			}
 
@@ -300,22 +489,31 @@ void Game::Update()
 										break;
 									}
 								}
-
 							}
 						}
 						if (!collisionWithEnemy)
 						{
 							enemy.setPosition(newPosition);
 						}
-
 					}
-
 				}
 			}
-
-
 		}		
 		enemy.update(deltaTime);
+	}
+
+	// If all enemies are dead, start the win state timer
+	if (allEnemiesDead) 
+	{
+		winStateTimer += deltaTime;
+		if (winStateTimer >= winStateDelay) 
+		{
+			currentState = GameState::WIN;
+		}
+	}
+	else 
+	{
+		winStateTimer = 0.0f;
 	}
 
 	 // Player shooting logic
@@ -379,12 +577,69 @@ void Game::Update()
 		}
 	}
 
+	// Check game over conditions
+	// Check game over conditions
+	if (m_player->health <= 0) 
+	{
+		playerDead = true;
+		gameOverTimer += deltaTime;
+		if (gameOverTimer >= gameOverDelay) 
+		{
+			currentState = GameState::GAMEOVER;
+		}
+	}
+	else 
+	{
+		playerDead = false;
+		gameOverTimer = 0.0f;
+	}
+	
 	/* Update HUD with current player stats*/
 	hud->updateFPS(fps); 
 	hud->UpdateHealth(m_player->health);
 	hud->UpdateAmmo(m_player->ammo);
 }
 
-void Game::RenderTitleScreen()
+void Game::ResetGame() 
 {
+	// Reset player state
+	m_player->health = 100;
+	m_player->ammo = 100;	
+	glm::vec3 spawnPoint = map->getPlayerSpawnPosition();
+	m_player = new Player(spawnPoint);
+	m_player->SetProjection(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
+
+	// Reset enemies
+	enemies.clear();
+	vector<glm::vec3> enemySpawnPoints = map->getEnemySpawnPositions("Enemy");
+	for (const auto& pos : enemySpawnPoints)
+	{
+		enemies.emplace_back(createSoldier(pos));
+	}
+
+	// Reset items
+	items.clear();	
+	auto healthPacks = map->getObjects("HealthPack");
+	for (const auto& obj : healthPacks)
+	{
+		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::HEALTH));
+	}
+	auto ammoPacks = map->getObjects("AmmoPack");
+	for (const auto& obj : ammoPacks)
+	{
+		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::AMMO));
+	}
+
+	// Reset timers and states
+	lastShotTime = 0.0f;
+	winStateTimer = 0.0f;
+	allEnemiesDead = false;
+
+	// Reset HUD
+	hud->UpdateHealth(m_player->health);
+	hud->UpdateAmmo(m_player->ammo);
+
+	// Set the game state to gameplay
+	currentState = GameState::GAMEPLAY;
 }
+

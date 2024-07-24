@@ -25,10 +25,9 @@ using namespace std;
 
 enum GameState
 {
-	TITLE,
-	INSTRUCTIONS,
-	PLAYING,
-	LEVELCOMPLETE,	
+	MENU,
+	GAMEPLAY,
+	WIN,	
 	GAMEOVER
 };
 
@@ -43,18 +42,25 @@ public:
 	void Run();
 	void Cleanup();
 
-private:
+	void ResetGame();
 
+private:
+	
 	void ProcessInput(float deltaTime);
 	void Update();
 	void Render();
 
-
-	// Game Screens
-	void RenderTitleScreen();
-	void RenderLoadingScreen();	
-	void RenderLevelCompleteScreen();
+	// Game States
+	void RenderMenu();
+	void RenderGameplay();
+	void RenderWinScreen();
 	void RenderGameOverScreen();
+
+	void UpdateMenu();
+	void UpdateGameplay();
+	void UpdateWinScreen();
+	void UpdateGameOverScreen();
+
 
 	// Game Subsystems
 	Window* m_window;
@@ -73,7 +79,16 @@ private:
 	float deltaTime;
 	float lastFrame;
 
-	int playerHealth;
+	// Win state delay
+	bool allEnemiesDead;
+	float winStateDelay;
+	float winStateTimer;
+
+	// Game over delay
+	bool playerDead;
+	float gameOverDelay;
+	float gameOverTimer;
+
 	 
 	//Input handling
 	bool keys[1024];		// Array to store the state of keys
@@ -95,7 +110,9 @@ private:
 	GameState currentState;
 
 	// Screen Textures
-
+	GLuint menuTexture;
+	GLuint winTexture;
+	GLuint gameOverTexture;
 
 
 };
