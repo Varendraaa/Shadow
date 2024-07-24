@@ -9,6 +9,7 @@
 #include "Shader.h"
 #include "Pathfinding.h"
 #include "TmxParser.h"
+#include "SoundManager.h"
 
 enum AnimationState
 {

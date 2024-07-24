@@ -42,7 +42,7 @@ public:
 
 	// Entity Methods - remove to another class later
 	glm::vec3 getPlayerSpawnPosition() const;
-	vector<glm::vec3> getEnemySpawnPositions() const;
+	vector<glm::vec3> getEnemySpawnPositions(const string& name) const;
 
 private:
 	vector <TileLayer> layers;	

@@ -238,10 +238,16 @@ void Enemy::attackPlayer(int& playerHealth, float attackProbability, float curre
 {
     if (currentTime - lastAttackTime >= attackCooldown) 
     {
-        if (rand() % 100 < attackProbability * 100) 
-        { // attackProbability is a value between 0 and 1
+        if (rand() % 100 < attackProbability * 100)             // attackProbability is a value between 0 and 1
+        { 
             playerHealth -= damage; // Adjust damage as necessary
         }
         lastAttackTime = currentTime;
+        
+        irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
+        if (soundEngine)
+        {
+            soundEngine->play2D("Music/n_soldier_attack.mp3");
+        }
     }
 }

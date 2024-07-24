@@ -15,13 +15,22 @@
 #include "Item.h"
 
 #include "HUD.h"
-#include "SoundEngine.h"
+#include "SoundManager.h"
 
 #include <iostream>
 #include <string>
 
 using namespace std;
 
+
+enum GameState
+{
+	TITLE,
+	INSTRUCTIONS,
+	PLAYING,
+	LEVELCOMPLETE,	
+	GAMEOVER
+};
 
 class Game
 {
@@ -40,12 +49,18 @@ private:
 	void Update();
 	void Render();
 
+
+	// Game Screens
+	void RenderTitleScreen();
+	void RenderLoadingScreen();	
+	void RenderLevelCompleteScreen();
+	void RenderGameOverScreen();
+
 	// Game Subsystems
 	Window* m_window;
 	//Camera* m_camera;
 	Shader* shaderprogram;
 	HUD* hud;
-
 	Player* m_player;
 
 	// Map Data
@@ -76,8 +91,13 @@ private:
 	float lastShotTime;
 	const float shootCooldown = 0.5f; // 0.5 seconds cooldown between shots
 
-	// Sound Engine
-	SoundEngine soundEngine;
+	// GameState
+	GameState currentState;
+
+	// Screen Textures
+
+
+
 };
 
 

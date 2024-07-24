@@ -100,12 +100,12 @@ glm::vec3 TiledMap::getPlayerSpawnPosition() const
 	return glm::vec3(4.0f, 0.0f, 4.0f);
 }
 
-vector<glm::vec3> TiledMap::getEnemySpawnPositions() const
+vector<glm::vec3> TiledMap::getEnemySpawnPositions(const string& name) const
 {
 	vector<glm::vec3> enemySpawns;
 	for (const auto& object : objects)
 	{
-		if (object.type == "Enemy")
+		if (object.type == name)
 		{
 			cout << "Enemy Spawn Position Found! : " << object.x << ", " << object.y << endl;
 			enemySpawns.push_back(glm::vec3(object.x /16, 0.0f, object.y /16));

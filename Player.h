@@ -11,7 +11,7 @@
 #include "TmxParser.h"
 #include "LevelMesh.h"
 #include "Weapon.h"
-#include "SoundEngine.h"
+#include "SoundManager.h"
 
 using namespace std;
 
@@ -46,9 +46,9 @@ public:
 private:	
 	// Player Specific Attributes
 	glm::vec3 playerSize;		// Dimensions of the player's bounding box
-
+	
 	Weapon weapon;
-	SoundEngine soundEngine;
+
 };
 
 #endif // !PLAYER_H

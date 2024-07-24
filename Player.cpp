@@ -7,8 +7,8 @@ Player::Player(glm::vec3& spawnPoint) :
 	health(100),
 	ammo(100),
 	shootCooldown(0.5f),
-	lastShotTime(0.0f),
-	soundEngine(soundEngine)
+	lastShotTime(0.0f)
+	
 {	
 }
 
@@ -91,8 +91,13 @@ bool Player::Shoot()
 		weapon.Shoot();
 		ammo--;
 
-		// Add sound effect here
-		soundEngine.PlaySound("Music/shotgun.mp3", false);
+		// Add sound effect here  - instance of the sound engine
+		irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
+		if (soundEngine) 
+		{
+			soundEngine->setSoundVolume(0.2f);
+			soundEngine->play2D("Music/w_rifle.ogg");
+		}
 		return true;
 	}
 	return false;

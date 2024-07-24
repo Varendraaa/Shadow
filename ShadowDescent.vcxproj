@@ -160,7 +160,6 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Raycasting.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="SoundEngine.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="tinyobj.cpp" />
@@ -190,7 +189,7 @@
     <ClInclude Include="Raycasting.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="SoundEngine.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TmxParser.h" />
     <ClInclude Include="Vertex.h" />

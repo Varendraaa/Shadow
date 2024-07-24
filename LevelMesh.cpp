@@ -18,8 +18,8 @@ LevelMesh::~LevelMesh()
 void LevelMesh::loadTextures() 
 {
     wallTexture = TextureLoader::LoadTexture("Stone_Walls.png");
-    floorTexture = TextureLoader::LoadTexture("LavaFloor.png");
-    ceilingTexture = TextureLoader::LoadTexture("test_texture.png");
+    floorTexture = TextureLoader::LoadTexture("Textures/Wall2.png");
+    ceilingTexture = TextureLoader::LoadTexture("Textures/Wall2.png");
 }
 
 bool LevelMesh::isBlocked(int x, int z, const TileLayer& layout) 
