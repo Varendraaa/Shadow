@@ -99,8 +99,7 @@ bool Game::initialise()
 		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::AMMO));
 	}
 	/*Load the Title and Instruction Screen*/
-	titleScreenTexture = TextureLoader::LoadTexture("Textures/TitleScreen.png");
-	instructionsScreenTexture = TextureLoader::LoadTexture("Textures/LoadingScreen.png");
+	
 
 	return true;
 }
@@ -189,7 +188,7 @@ void Game::Render()
 	m_player->RenderWeapon(*shaderprogram);
 	
 	// Render HUD
-	hud->Render()
+	hud->Render();
 }
 
 
