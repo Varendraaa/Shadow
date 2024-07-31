@@ -1,5 +1,5 @@
 # Shadow Descent FPS
-This is an old school, Doom/Wolfenstein inspired first person shooter and base engine entirely coded in C++ and GLSL, using OpenGL 4.4 as the graphics API, and various other low level libraries to aid in core functionality.<br/>
+This is an old school, Doom/Wolfenstein inspired first person shooter and base engine **entirely coded in C++ and GLSL**, using OpenGL 4.4 as the graphics API, and various other low level libraries to aid in core functionality.<br/>
 It was done for my MSc thesis project at the University of Dundee.<br/>
 **It is in no way, shape or form meant for any commercial use or application.<br/>**
 
