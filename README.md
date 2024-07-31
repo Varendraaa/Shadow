@@ -6,7 +6,7 @@ It was done for my MSc thesis project at the University of Dundee.<br/>
 It uses the Tiled Map Editor, and the tmx files it generates, as layout data for generating walls, ceilings, floors, enemy and item spawns.<br/>
 It is designed for easy addition of new game objects, such as enemies and items, and uses billboarding sprites and cycling textures to create animations.<br/>
 
-**## Fair Warning**
+## Fair Warning
 **The game and its base engine was created in a very limited development window of around 7 weeks**, thesis writing also needed some time :( <br/>
 
 It is my first foray into game development and graphics programming, so features and components were implemented as I was learning the OpenGL pipeline.
