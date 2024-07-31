@@ -19,3 +19,8 @@ There are many things I would do differently, having learnt the lessons I did du
 - Sound playback via implementation of the irrKlang library.
 - Enemy Factory setup based on the decorator design pattern to allow for efficient implementation of new enemies into the game.
 - Dynamic adjustment of sprite models to properly work with direct spotlight effects.
+
+
+## Demo Video
+https://github.com/user-attachments/assets/fa83e99f-fdc1-406a-8594-f856e2367eea
+
