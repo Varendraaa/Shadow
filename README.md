@@ -1,16 +1,27 @@
 # Shadow Descent FPS
-This is an old school, Doom/Wolfenstein inspired first person shooter and base engine entirely coded in C++ and GLSL.<br/>
+This is an old school, Doom/Wolfenstein inspired first person shooter and base engine entirely coded in C++ and GLSL, using OpenGL 4.4 as the graphics API, and various other low level libraries to aid in core functionality.<br/>
 It was done for my MSc thesis project at the University of Dundee.<br/>
 **It is in no way, shape or form meant for any commercial use or application.<br/>**
+
 It uses the Tiled Map Editor, and the tmx files it generates, as layout data for generating walls, ceilings, floors, enemy and item spawns.<br/>
 It is designed for easy addition of new game objects, such as enemies and items, and uses billboarding sprites and cycling textures to create animations.<br/>
 
-
 ## Fair Warning
-**The game and its base engine was created in a very limited development window of around 7 weeks.** <br/>
-It is my first foray into game development and graphics programming, so features and components were implemented as I was learning the OpenGL pipeline. <br/>
+**The game and its base engine was created in a very limited development window of around 7 weeks**, thesis writing also needed some time :( <br/>
+
+It is my first foray into game development and graphics programming, so features and components were implemented as I was learning the OpenGL pipeline.
 There are many things I would do differently, having learnt the lessons I did during this process. If I decide to refactor the implementation into a more streamlined, optimised product, I will link that repository here. <br/>
 
+## Libaries and Frameworks Used
+- OpenGL
+- GLAD
+- GLFW
+- GLM
+- tmxlite
+- Stb
+- irrklang
+- ImGui
+  
 ## Feature List
 - BFS Pathfinding Algorithm for enemies to detect player.
 - Enemy state machine that switches between Walking, Attacking and Death based on distance between enemy and player, and enemy's health.
