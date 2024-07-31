@@ -18,7 +18,7 @@ There are many things I would do differently, having learnt the lessons I did du
 - Texture Cycling as a means of pseudo-animation of sprites (was not possible to introduce model loading via libraries like Assimp in the timeframe).
 - Sound playback via implementation of the irrKlang library.
 - Enemy Factory setup based on the decorator design pattern to allow for efficient implementation of new enemies into the game.
-- Dynamic adjustment of sprite models to properly work with direct spotlight effects.
+- Dynamic adjustment of sprite textures to properly work with direct spotlight effects.
 
 
 ## Demo Video
