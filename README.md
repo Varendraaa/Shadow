@@ -8,6 +8,7 @@ It is designed for easy addition of new game objects, such as enemies and items,
 
 ## Fair Warning
 **The game and its base engine was created in a very limited development window of around 7 weeks**, learning OpenGL and thesis writing also needed some time :( <br/>
+Would not recommend anyone to do this, 12+ hour days programming, and bugfixing is hell. <br/>
 
 It is my first foray into game development and graphics programming, so features and components were implemented as I was learning the OpenGL pipeline.
 There are many things I would do differently, having learnt the lessons I did during this process. If I decide to refactor the implementation into a more streamlined, optimised product, I will link that repository here. <br/>
