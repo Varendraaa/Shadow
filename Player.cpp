@@ -82,6 +82,7 @@ bool Player::checkCollision(glm::vec3& newPosition, const TileLayer& wallLayer)
 void Player::RenderWeapon(Shader& shader) 
 {
 	weapon.Render(glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f), shader);
+
 }
 
 bool Player::Shoot()

@@ -13,8 +13,13 @@ uniform mat4 projection;
 
 void main()
 {
+ // Calculate the normal dynamically
+    vec3 camRight = vec3(view[0][0], view[1][0], view[2][0]);
+    vec3 camUp = vec3(view[0][1], view[1][1], view[2][1]);
+    vec3 normal = normalize(cross(camRight, camUp));
+
     FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal;
+    Normal = normal;
     TexCoords = aTexCoords;
 
     gl_Position = projection * view * model * vec4(aPos, 1.0);

@@ -7,14 +7,16 @@
 using namespace std;
 
 // Node structure to represent each position in the pathfinding grid
-struct Node {
+struct Node 
+{
     glm::ivec2 position; // The grid position of the node
     Node* parent;        // Pointer to the parent node (for path reconstruction)
 
     Node(const glm::ivec2& position, Node* parent) : position(position), parent(parent) {}
 };
 
-class Pathfinding {
+class Pathfinding 
+{
 public:
     // Constructor to initialize the grid dimensions
     Pathfinding(int width, int height);

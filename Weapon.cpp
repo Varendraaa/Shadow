@@ -108,6 +108,7 @@ void Weapon::Render(const glm::mat4& projection, Shader& shader)
 
 	glm::mat4 model = glm::mat4(1.0f);
 	float bobbingOffset = sin(bobbingTime) * bobbingAmplitude;
+	
 	//Translate, scale and rotate the weapon to desired position on screen
 	model = glm::translate(model, glm::vec3(900.0f, 80.0f + bobbingOffset, 0.0f)); // Center of the screen
 	model = glm::scale(model, glm::vec3(300.0f, 200.0f, 1.0f)); // Adjust size

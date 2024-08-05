@@ -26,6 +26,7 @@ using namespace std;
 enum GameState
 {
 	MENU,
+	LOAD,
 	GAMEPLAY,
 	WIN,	
 	GAMEOVER
@@ -52,15 +53,18 @@ private:
 
 	// Game States
 	void RenderMenu();
+	void RenderLoadScreen();
 	void RenderGameplay();
 	void RenderWinScreen();
 	void RenderGameOverScreen();
 
 	void UpdateMenu();
+	void UpdateLoadScreen();
 	void UpdateGameplay();
 	void UpdateWinScreen();
 	void UpdateGameOverScreen();
 
+	void loadLevel(GLint levelNumber);
 
 	// Game Subsystems
 	Window* m_window;
@@ -70,6 +74,8 @@ private:
 	Player* m_player;
 
 	// Map Data
+	GLint currentLevel;			// Current level number
+	GLint totalLevels;			// Total number of levels
 	TiledMap* map;
 	LevelMesh* level;		
 	vector<Enemy> enemies;
@@ -79,7 +85,7 @@ private:
 	float deltaTime;
 	float lastFrame;
 
-	// Win state delay
+	// Win state delay to prevent screen artifacting
 	bool allEnemiesDead;
 	float winStateDelay;
 	float winStateTimer;
@@ -107,10 +113,11 @@ private:
 	const float shootCooldown = 0.5f; // 0.5 seconds cooldown between shots
 
 	// GameState
-	GameState currentState;
+	GameState currentState;	
 
 	// Screen Textures
 	GLuint menuTexture;
+	GLuint loadTexture;
 	GLuint winTexture;
 	GLuint gameOverTexture;
 

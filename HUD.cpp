@@ -38,7 +38,7 @@ void HUD::loadFont()
 	}
 }
 
-void HUD::updateFPS(float fps) 
+void HUD::updateFPS(GLfloat fps) 
 {
 	this->fps = fps;
 }
@@ -89,6 +89,11 @@ void HUD::Render()
 	ImGui::SetCursorPos(ImVec2(10, 10));  // Position
 	ImGui::Text("FPS: %.1f", fps);
 
+	// Level counter at the top right
+	ImGui::SetCursorPos(ImVec2(10, 50));  // Position
+	ImGui::Text("Level: %d", currentLevel);
+
+
 	// Pop custom font if used
 	if (HUDfont) 
 	{
@@ -102,12 +107,17 @@ void HUD::Render()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void HUD::UpdateHealth(int health) 
+void HUD::UpdateHealth(GLint health) 
 {
 	this->health = health;
 }
 
-void HUD::UpdateAmmo(int ammo) 
+void HUD::UpdateAmmo(GLint ammo) 
 {
 	this->ammo = ammo;
+}
+
+void HUD::updateLevel(GLint level)
+{
+	this->currentLevel = level;
 }

@@ -2,10 +2,16 @@
 #include "Texture.h"
 
 // Constructor initializes OpenGL buffers and textures to 0
-LevelMesh::LevelMesh() : VAO(0), VBO(0), EBO(0), wallTexture(0), floorTexture(0), ceilingTexture(0) 
+LevelMesh::LevelMesh(const string& levelPath) : 
+    VAO(0), 
+    VBO(0), 
+    EBO(0), 
+    wallTexture(0), 
+    floorTexture(0), 
+    ceilingTexture(0)
 {
 	loadTextures();
-    generateMesh();
+    generateMesh(levelPath);
 }
 
 // Destructor cleans up OpenGL resources
@@ -17,9 +23,30 @@ LevelMesh::~LevelMesh()
 // Load textures for walls, floor, and ceiling
 void LevelMesh::loadTextures() 
 {
-    wallTexture = TextureLoader::LoadTexture("Stone_Walls.png");
-    floorTexture = TextureLoader::LoadTexture("Textures/Wall2.png");
-    ceilingTexture = TextureLoader::LoadTexture("Textures/Wall2.png");
+    // Define the texture Mapping
+    map<int, string> textureMapping =
+    {
+        {1, "Textures/Level/1.png"},
+        {2, "Textures/Level/2.png"},
+        {3, "Textures/Level/3.png"},
+        {4, "Textures/Level/4.png"},
+        {5, "Textures/Level/5.png"},
+        {6, "Textures/Level/6.png"},
+        {7, "Textures/Level/7.png"},
+        {8, "Textures/Level/8.png"},
+        {9, "Textures/Level/9.png"},
+        {10, "Textures/Level/10.png"}
+    };
+
+	// Load textures based on the mapping
+	for (const auto& pair : textureMapping)
+    {
+		textureIDs[pair.first] = TextureLoader::LoadTexture(pair.second);
+	}
+
+    //wallTexture = TextureLoader::LoadTexture("Textures/Levels/17.png");
+    //floorTexture = TextureLoader::LoadTexture("Textures/Wall2.png");
+    //ceilingTexture = TextureLoader::LoadTexture("Textures/Wall.png");
 }
 
 bool LevelMesh::isBlocked(int x, int z, const TileLayer& layout) 
@@ -31,11 +58,11 @@ bool LevelMesh::isBlocked(int x, int z, const TileLayer& layout)
 }
 
 // Generate the mesh by creating cubes for each layout
-void LevelMesh::generateMesh() 
+void LevelMesh::generateMesh(const string& levelPath)
 {
     // Get TMX Data
     TiledMap map;
-    if (!map.loadFromFile("Levels/Level1.tmx")) 
+    if (!map.loadFromFile(levelPath)) 
     {
         cerr << "Failed to load level data" << endl;
         return;

@@ -136,8 +136,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;glfw3D.lib;tmxlite-s.lib;tmxlite-s-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;glfw3D.lib;tmxlite-s.lib;tmxlite-s-d.lib;irrKlang.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\glad\src\glad.c" />
@@ -158,7 +162,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Raycasting.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -186,7 +189,6 @@
     <ClInclude Include="LevelMesh.h" />
     <ClInclude Include="Pathfinding.h" />
     <ClInclude Include="Player.h" />
-    <ClInclude Include="Raycasting.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SoundManager.h" />
@@ -199,6 +201,7 @@
   <ItemGroup>
     <None Include="..\Level1Json.json" />
     <None Include="Levels\Level1.tmx" />
+    <None Include="Levels\Level3.tmx" />
     <None Include="New folder\Test.json" />
     <None Include="shader.frag" />
     <None Include="shader.vert" />

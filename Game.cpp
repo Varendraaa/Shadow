@@ -20,6 +20,7 @@ Game::Game() :
 	playerDead(false),
 	gameOverDelay(2.0f), // Delay of 2 seconds
 	gameOverTimer(0.0f),
+	currentLevel(1),
 	firstMouse(true)
 {
 	std::memset(keys, 0, sizeof(keys)); // Initialize all key states to false
@@ -28,12 +29,68 @@ Game::Game() :
 Game::~Game()
 {
 	//When the item goes out of scope, delete them
-	delete m_window;
-	//delete m_camera;
+	delete m_window;	
 	delete shaderprogram;
 	delete level;
 	delete m_player;	
 	delete hud;
+}
+
+void Game::loadLevel(GLint levelNumber)
+{
+	// Load the desired level from the specified file
+	string levelPath = "Levels/Level" + to_string(levelNumber) + ".tmx";
+
+
+
+	// Clean up the existing level data
+	delete level;
+	delete map;
+
+	// Load the new level layout data from the tmx file
+	map = new TiledMap();
+	if (!map->loadFromFile(levelPath))
+	{
+		cerr << "Failed to load level " << levelPath << endl;
+		return;
+	}
+
+	
+	/* Player*/
+	glm::vec3 spawnPoint = map->getPlayerSpawnPosition();
+	m_player = new Player(spawnPoint);
+	m_player->SetProjection(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
+
+	/* Create the level from the layout*/
+	level = new LevelMesh(levelPath);
+
+	/* Spawn Enemies*/
+	enemies.clear();
+	vector<glm::vec3> enemySpawnPoints = map->getEnemySpawnPositions("Enemy");
+	for (const auto& pos : enemySpawnPoints)
+	{
+		enemies.emplace_back(createSoldier(pos));
+	}
+
+	vector<glm::vec3> ogreSpawnPoints = map->getEnemySpawnPositions("Ogre");
+	for (const auto& pos : ogreSpawnPoints)
+	{
+		enemies.emplace_back(createOgre(pos));
+	}
+
+	// Load items
+	items.clear();
+	auto healthPacks = map->getObjects("HealthPack");
+	for (const auto& obj : healthPacks)
+	{
+		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::HEALTH));
+	}
+
+	auto ammoPacks = map->getObjects("AmmoPack");
+	for (const auto& obj : ammoPacks)
+	{
+		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::AMMO));
+	}
 }
 
 bool Game::initialise()
@@ -64,48 +121,23 @@ bool Game::initialise()
 	hud = new HUD();
 	hud->Initialise();
 
-	/* Load the Map*/
-	map = new TiledMap();
-	map->loadFromFile("Levels/Level1.tmx");
-	
-	/* Player*/
-	glm::vec3 spawnPoint = map->getPlayerSpawnPosition();
-	m_player = new Player(spawnPoint);
-	m_player->SetProjection(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
-
-	/*Shader Program*/
+	/* Create the Shader Program*/
 	shaderprogram = new Shader("shader.vert", "shader.frag");
 
 	/*Enable Depth Test*/
 	glEnable(GL_DEPTH_TEST);
-
-	/* Create the level*/
-	level = new LevelMesh();	
-
-	/* Spawn Enemies*/
-	vector<glm::vec3> enemySpawnPoints = map->getEnemySpawnPositions("Enemy");
 	
-	for (const auto& pos : enemySpawnPoints)
-	{
-		enemies.emplace_back(createSoldier(pos));
-	}		
-
-	// Load items
-	auto healthPacks = map->getObjects("HealthPack");
-	for (const auto& obj : healthPacks) 
-	{
-		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::HEALTH));
-	}
-
-	auto ammoPacks = map->getObjects("AmmoPack");
-	for (const auto& obj : ammoPacks) 
-	{
-		items.push_back(Item(glm::vec3(obj.x / 16, 0.0f, obj.y / 16), ItemType::AMMO));
-	}
 	/*Load the Title and Instruction Screen*/
 	menuTexture = TextureLoader::LoadTexture("Textures/TitleScreen.png");
+	loadTexture = TextureLoader::LoadTexture("Textures/LoadingScreen.png");
 	winTexture = TextureLoader::LoadTexture("Textures/LevelClear.png");
 	gameOverTexture = TextureLoader::LoadTexture("Textures/GameOver.png");
+
+
+	/* Load the first level*/
+	currentLevel = 1;				// The first level to load
+	totalLevels = 2;				// The total number of levels in the game. Change if more levels are added	
+	loadLevel(currentLevel);
 
 	return true;
 }
@@ -116,6 +148,10 @@ void Game::Render()
 	{
 	case GameState::MENU:
 		RenderMenu();
+		break;
+
+	case GameState::LOAD:
+		RenderLoadScreen();
 		break;
 
 	case GameState::GAMEPLAY:
@@ -138,6 +174,10 @@ void Game::Update()
 	{
 	case GameState::MENU:
 		UpdateMenu();
+		break;
+
+	case GameState::LOAD:
+		UpdateLoadScreen();
 		break;
 
 	case GameState::GAMEPLAY:
@@ -183,8 +223,39 @@ void Game::RenderMenu()
 	// Render the ImGUI frame
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
 
+void Game::RenderLoadScreen()
+{
+// Clear the screen
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Start the ImGUI frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // Get window size
+    GLint display_w, display_h;
+    glfwGetFramebufferSize(m_window->getWindow(), &display_w, &display_h);
+
+    // Render the Loading Screen
+    ImGui::Begin("Loading Screen", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+    ImGui::SetWindowPos(ImVec2(0, 0));
+    ImGui::SetWindowSize(ImVec2((GLfloat)display_w, (GLfloat)display_h));
+
+    // UV coordinates for flipping the image
+    ImVec2 uv0 = ImVec2(0.0f, 1.0f); // Bottom-left corner
+    ImVec2 uv1 = ImVec2(1.0f, 0.0f); // Top-right corner
+
+    // Render the Image
+    ImGui::Image((void*)(intptr_t)loadTexture, ImVec2((GLfloat)display_w, (GLfloat)display_h), uv0, uv1);
+
+    ImGui::End();
+
+    // Render the ImGUI frame
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Game::RenderGameplay()
@@ -199,7 +270,7 @@ void Game::RenderGameplay()
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
-
+	
 	view = m_player->GetViewMatrix();
 	projection = m_player->GetProjectionMatrix();
 
@@ -207,6 +278,21 @@ void Game::RenderGameplay()
 	shaderprogram->SetMat4("view", view);
 	shaderprogram->SetMat4("projection", projection);
 	shaderprogram->SetMat4("model", model);
+	#
+	// Set ambient lighting uniform
+	shaderprogram->SetVec3("ambientColor", glm::vec3(1.0f, 1.0f, 1.0f));		// White light ambient color
+
+	shaderprogram->SetVec3("spotlight.position", m_player->GetPosition());
+	shaderprogram->SetVec3("spotlight.direction", m_player->GetFront());
+	shaderprogram->SetVec3("spotlight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+	shaderprogram->SetVec3("spotlight.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+	shaderprogram->SetVec3("spotlight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+	shaderprogram->SetFloat("spotlight.constant", 1.0f);
+	shaderprogram->SetFloat("spotlight.linear", 0.09f);
+	shaderprogram->SetFloat("spotlight.quadratic", 0.032f);
+	shaderprogram->SetFloat("spotlight.cutOff", glm::cos(glm::radians(12.5f)));
+	shaderprogram->SetFloat("spotlight.outerCutOff", glm::cos(glm::radians(18.0f)));
+	shaderprogram->SetFloat("spotlightIntensity", 1.4f); // Initialize the intensity
 
 	level->draw();			// Render the level mesh
 
@@ -301,8 +387,20 @@ void Game::UpdateMenu()
 	// Update the Menu Screen
 	if (keys[GLFW_KEY_ENTER])
 	{
-		currentState = GameState::GAMEPLAY;
-	
+		currentState = GameState::LOAD;	
+	}
+}
+
+void Game::UpdateLoadScreen()
+{
+	// Timer to show loading screen for a minimum duration
+	static float loadStartTime = glfwGetTime();
+	if (glfwGetTime() - loadStartTime >= 2.0f) // Show for at least 1 second
+	{
+		if (keys[GLFW_KEY_ENTER])
+		{
+			currentState = GameState::GAMEPLAY;
+		}
 	}
 }
 
@@ -311,7 +409,20 @@ void Game::UpdateWinScreen()
 	// Update the Win Screen
 	if (keys[GLFW_KEY_ENTER]) 
 	{
-		ResetGame();
+		// Load the next level
+		if (currentLevel < totalLevels)
+		{
+			// Increment the level number
+			currentLevel++;
+		}
+		loadLevel(currentLevel);
+
+		// Reset necessary game states
+		winStateTimer = 0.0f;
+		allEnemiesDead = false;
+		currentState = GameState::GAMEPLAY;
+
+		//ResetGame();
 		//currentState = GameState::MENU;
 	}
 }
@@ -326,11 +437,9 @@ void Game::UpdateGameOverScreen()
 	}
 }
 
-
-
 void Game::Run()
 {
-		/* Sound Engine - Play Background Music*/
+	/* Sound Engine - Play Background Music*/
 	irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
 	if (soundEngine)
 	{
@@ -371,8 +480,7 @@ void Game::Cleanup()
 	// Clean up game resources
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-		
+	ImGui::DestroyContext();		
 }
 
 
@@ -419,7 +527,6 @@ void Game::ProcessInput(float deltaTime)
 	}
 }
 
-
 void Game::UpdateGameplay()
 {
 	float currentTime = glfwGetTime();
@@ -429,7 +536,6 @@ void Game::UpdateGameplay()
 	glm::ivec2 playerPos = glm::ivec2(m_player->GetPosition().x, m_player->GetPosition().z);
 	TileLayer wallLayer = map->getLayer("Walls");
 	Pathfinding pathfinder(wallLayer.width, wallLayer.height);
-
 
 	//Enemy Behaviour and State Machine
 	for (auto& enemy : enemies) 
@@ -453,7 +559,7 @@ void Game::UpdateGameplay()
 			if (enemy.isInAttackRange(m_player->GetPosition(), 5.0f))		// Adjust this value as necessary for attack range
 			{
 				enemy.setState(AnimationState::ATTACK);
-				enemy.attackPlayer(m_player->health, 0.1f, currentTime);	// Adjust probability as 
+				enemy.attackPlayer(m_player->health, 0.1f, currentTime);	// Adjust attack probability as necessary
 
 			}
 
@@ -469,7 +575,7 @@ void Game::UpdateGameplay()
 					glm::vec3 targetPos = glm::vec3(nextPos.x, enemy.getPosition().y, nextPos.y);
 					glm::vec3 direction = glm::normalize(targetPos - enemy.getPosition());
 
-					glm::vec3 newPosition = enemy.getPosition() + direction * deltaTime * 2.0f; // Adjust speed as necessary
+					glm::vec3 newPosition = enemy.getPosition() + direction * deltaTime * 2.0f; // Adjust movement speed as necessary
 
 					// Collision Checks					
 					if (!enemy.checkCollision(newPosition, wallLayer))	// Check for collision with walls
@@ -480,6 +586,7 @@ void Game::UpdateGameplay()
 						{
 							if (&enemy != &otherEnemy)
 							{
+								// Check if the enemy has reached or passed the target position
 								if (glm::distance(newPosition, otherEnemy.getPosition()) < 1.0f)
 								{
 									float distance = glm::length(otherEnemy.getPosition() - newPosition);
@@ -578,7 +685,6 @@ void Game::UpdateGameplay()
 	}
 
 	// Check game over conditions
-	// Check game over conditions
 	if (m_player->health <= 0) 
 	{
 		playerDead = true;
@@ -598,6 +704,7 @@ void Game::UpdateGameplay()
 	hud->updateFPS(fps); 
 	hud->UpdateHealth(m_player->health);
 	hud->UpdateAmmo(m_player->ammo);
+	hud->updateLevel(currentLevel);
 }
 
 void Game::ResetGame() 
@@ -642,4 +749,3 @@ void Game::ResetGame()
 	// Set the game state to gameplay
 	currentState = GameState::GAMEPLAY;
 }
-

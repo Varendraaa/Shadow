@@ -22,15 +22,16 @@ public:
 	void Initialise();
 	void Render();
 
-	void UpdateHealth(int health);
-	void UpdateAmmo(int ammo);
-	void updateFPS(float fps); 
+	void UpdateHealth(GLint health);
+	void UpdateAmmo(GLint ammo);
+	void updateFPS(GLfloat fps);
+	void updateLevel(GLint level);
 
 private:
 	
 	GLuint healthTexture, ammoTexture;
-	int health, ammo;
-	float fps;
+	GLint health, ammo, currentLevel;
+	GLfloat fps;
 
 	ImFont* HUDfont;
 

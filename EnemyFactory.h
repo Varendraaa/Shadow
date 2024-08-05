@@ -3,4 +3,6 @@
 
 Enemy createSoldier(const glm::vec3& position);
 
-//Enemy createZombie(const glm::vec3& position);
+Enemy createOgre(const glm::vec3& position);
+
+

@@ -69,9 +69,6 @@
     <ClCompile Include="Weapon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Raycasting.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HUD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,9 +135,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Weapon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Raycasting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Enemy.h">
@@ -212,6 +206,9 @@
       <Filter>Resource Files\Map Files</Filter>
     </None>
     <None Include="Levels\Level1.tmx">
+      <Filter>Resource Files\Map Files</Filter>
+    </None>
+    <None Include="Levels\Level3.tmx">
       <Filter>Resource Files\Map Files</Filter>
     </None>
   </ItemGroup>
