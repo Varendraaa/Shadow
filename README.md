@@ -3,8 +3,8 @@ This is an old school, Doom/Wolfenstein inspired first person shooter and base e
 It was done for my MSc thesis project at the University of Dundee.<br/>
 **It is in no way, shape or form meant for any commercial use or application.<br/>**
 
-It uses the Tiled Map Editor, and the tmx files it generates, as layout data for generating walls, ceilings, floors, enemy and item spawns.<br/>
-It is designed for easy addition of new game objects, such as enemies and items, and uses billboarding sprites and cycling textures to create animations.<br/>
+It uses the Tiled Map Editor, and the tmx files it generates, as layout data for generating walls, ceilings, floors and their associated textures. It also defines the location data for enemy and item spawns.<br/>
+It is designed for easy addition of new game objects, and uses billboarding sprites and texture cycling to create animations.<br/>
 
 ## Fair Warning
 **The game and its base engine was created in a very limited development window of around 7 weeks**, learning OpenGL and thesis writing also needed some time :( <br/>
