@@ -15,6 +15,7 @@ enum AnimationState
 {
     WALK,
     ATTACK,
+    HURT,
     DEATH
 };
 
@@ -31,11 +32,13 @@ public:
     Enemy(const glm::vec3& position, int health, float size, int damage,
         const vector<AnimationFrame>& defaultFrames,
         const vector<AnimationFrame>& attackFrames,
+        const vector<AnimationFrame>& hurtFrames,
         const vector<AnimationFrame>& deathFrames);
 
     void render(const glm::mat4& view, const glm::mat4& projection, Shader& shader);
     void update(float deltaTime);
     void setState(AnimationState state);
+    AnimationState getState() const { return currentState; }
 
     bool checkCollision(const glm::vec3& newPosition, const TileLayer& wallLayer);
 
@@ -63,9 +66,11 @@ private:
 
     // Enemy animations
     AnimationState currentState;
+	AnimationState previousState;
 
     vector<AnimationFrame> walkFrames;
     vector<AnimationFrame> attackFrames;
+    vector<AnimationFrame> hurtFrames;
     vector<AnimationFrame> deathFrames;
     bool texturesLoaded;
 

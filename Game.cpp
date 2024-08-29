@@ -1,6 +1,9 @@
 #include "Game.h"
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 Game::Game() :
 	m_window(nullptr),
@@ -36,12 +39,38 @@ Game::~Game()
 	delete hud;
 }
 
+int Game::countLevels()
+{
+	int levelCount = 0;
+	std::ifstream file;
+	std::string levelPath;
+
+	while (true)
+	{
+		levelCount++;
+		std::stringstream ss;
+		ss << "Levels/Level" << levelCount << ".tmx";
+		levelPath = ss.str();
+
+		file.open(levelPath);
+		if (!file.is_open())
+		{
+			break;  // Exit the loop if the file doesn't exist
+		}
+		file.close();
+	}
+
+	// Subtract one because the loop increments levelCount once after the last valid level
+	cout << "Total Levels " << levelCount - 1 << endl;
+	return levelCount - 1;
+	
+}
+
 void Game::loadLevel(GLint levelNumber)
 {
 	// Load the desired level from the specified file
 	string levelPath = "Levels/Level" + to_string(levelNumber) + ".tmx";
-
-
+	
 
 	// Clean up the existing level data
 	delete level;
@@ -134,9 +163,14 @@ bool Game::initialise()
 	gameOverTexture = TextureLoader::LoadTexture("Textures/GameOver.png");
 
 
-	/* Load the first level*/
+	/* Load the first level */
 	currentLevel = 1;				// The first level to load
-	totalLevels = 2;				// The total number of levels in the game. Change if more levels are added	
+	totalLevels = countLevels();	// Dynamically count the total number of levels
+	if (totalLevels < 1) 
+	{
+		std::cerr << "No levels found. Please add level files in the 'Levels' folder." << std::endl;
+		return false;
+	}
 	loadLevel(currentLevel);
 
 	return true;
@@ -278,22 +312,7 @@ void Game::RenderGameplay()
 	shaderprogram->SetMat4("view", view);
 	shaderprogram->SetMat4("projection", projection);
 	shaderprogram->SetMat4("model", model);
-	#
-	// Set ambient lighting uniform
-	shaderprogram->SetVec3("ambientColor", glm::vec3(1.0f, 1.0f, 1.0f));		// White light ambient color
-
-	shaderprogram->SetVec3("spotlight.position", m_player->GetPosition());
-	shaderprogram->SetVec3("spotlight.direction", m_player->GetFront());
-	shaderprogram->SetVec3("spotlight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
-	shaderprogram->SetVec3("spotlight.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
-	shaderprogram->SetVec3("spotlight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-	shaderprogram->SetFloat("spotlight.constant", 1.0f);
-	shaderprogram->SetFloat("spotlight.linear", 0.09f);
-	shaderprogram->SetFloat("spotlight.quadratic", 0.032f);
-	shaderprogram->SetFloat("spotlight.cutOff", glm::cos(glm::radians(12.5f)));
-	shaderprogram->SetFloat("spotlight.outerCutOff", glm::cos(glm::radians(18.0f)));
-	shaderprogram->SetFloat("spotlightIntensity", 1.4f); // Initialize the intensity
-
+	
 	level->draw();			// Render the level mesh
 
 	for (Enemy& enemy : enemies)
@@ -308,6 +327,23 @@ void Game::RenderGameplay()
 	}
 
 	m_player->RenderWeapon(*shaderprogram);
+
+	// Set ambient lighting uniform
+	shaderprogram->SetVec3("ambientColor", glm::vec3(1.0f, 1.0f, 1.0f));		// White light ambient color
+
+	shaderprogram->SetVec3("spotlight.position", m_player->GetPosition());
+	shaderprogram->SetVec3("spotlight.direction", m_player->GetFront());
+
+	shaderprogram->SetVec3("spotlight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+	shaderprogram->SetVec3("spotlight.diffuse", glm::vec3(0.8f, 0.8f, 0.8f));
+	shaderprogram->SetVec3("spotlight.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+	shaderprogram->SetFloat("spotlight.constant", 1.0f);
+	shaderprogram->SetFloat("spotlight.linear", 0.09f);
+	shaderprogram->SetFloat("spotlight.quadratic", 0.032f);
+	shaderprogram->SetFloat("spotlight.cutOff", glm::cos(glm::radians(12.5f)));
+	shaderprogram->SetFloat("spotlight.outerCutOff", glm::cos(glm::radians(18.0f)));
+	shaderprogram->SetFloat("spotlightIntensity", 1.4f); // Initialize the intensity
+
 
 	// Render HUD
 	hud->Render();
@@ -395,7 +431,7 @@ void Game::UpdateLoadScreen()
 {
 	// Timer to show loading screen for a minimum duration
 	static float loadStartTime = glfwGetTime();
-	if (glfwGetTime() - loadStartTime >= 2.0f) // Show for at least 1 second
+	if (glfwGetTime() - loadStartTime >= 0.5f) // Show for at least 1 second
 	{
 		if (keys[GLFW_KEY_ENTER])
 		{
@@ -443,8 +479,13 @@ void Game::Run()
 	irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
 	if (soundEngine)
 	{
-		soundEngine->setSoundVolume(0.4f);
-		soundEngine->play2D("Music/Background.mp3", true);
+		irrklang::ISound* sound = soundEngine->play2D("Music/Background.mp3", true, true);
+		if (sound)
+		{
+			soundEngine->setSoundVolume(0.07f);
+			sound->setIsPaused(false); // Start playing the sound
+		}
+		
 	}
 
 	while (!m_window->ShouldClose())
@@ -550,6 +591,13 @@ void Game::UpdateGameplay()
 
 		allEnemiesDead = false;
 
+		// Skip enemies in the HURT state
+		if (enemy.getState() == AnimationState::HURT)
+		{
+			enemy.update(deltaTime);
+			continue;
+		}
+
 		// Check for Line of Sight to player
 		glm::ivec2 enemyPos = glm::ivec2(enemy.getPosition().x, enemy.getPosition().z);
 		
@@ -567,8 +615,8 @@ void Game::UpdateGameplay()
 			else
 			{
 				enemy.setState(AnimationState::WALK);
-
 				vector<glm::ivec2> path = pathfinder.findPath(enemyPos, playerPos, wallLayer);
+				
 				if (!path.empty())
 				{
 					glm::ivec2 nextPos = path.front();
@@ -580,7 +628,7 @@ void Game::UpdateGameplay()
 					// Collision Checks					
 					if (!enemy.checkCollision(newPosition, wallLayer))	// Check for collision with walls
 					{
-						// Check for collision  with other enemies
+						// Check for collision  with other enemies to prevent sprite overlap
 						bool collisionWithEnemy = false;
 						for (const auto& otherEnemy : enemies)
 						{
@@ -609,7 +657,7 @@ void Game::UpdateGameplay()
 		enemy.update(deltaTime);
 	}
 
-	// If all enemies are dead, start the win state timer
+	// If all enemies are dead, start the win state timer to prevent audio artifacts with sound engine
 	if (allEnemiesDead) 
 	{
 		winStateTimer += deltaTime;
@@ -624,28 +672,41 @@ void Game::UpdateGameplay()
 	}
 
 	 // Player shooting logic
-	if (keys[GLFW_MOUSE_BUTTON_1] && glfwGetTime() - lastShotTime >= shootCooldown) 
+	// Player shooting logic
+	auto calculateAngleToEnemy = [&](const glm::vec3& enemyPosition) -> float
+		{
+			glm::vec3 toEnemy = glm::normalize(enemyPosition - m_player->GetPosition());
+			float dotProduct = glm::dot(m_player->GetFront(), toEnemy);
+			return glm::acos(dotProduct); // Returns the angle in radians
+		};
+
+	if (keys[GLFW_MOUSE_BUTTON_1] && glfwGetTime() - lastShotTime >= shootCooldown)
 	{
 		glm::vec3 playerPos = m_player->GetPosition();
-		Enemy* nearestEnemy = nullptr;
+		Enemy* targetEnemy = nullptr;
+		float smallestAngle = glm::radians(25.0f); // Adjust threshold as necessary
 		float nearestDistance = 5.0f; // Adjust shooting range as necessary
 
-		for (auto& enemy : enemies) 
+		for (auto& enemy : enemies)
 		{
-			if (enemy.isAlive()) 
+			if (enemy.isAlive())
 			{
 				float distance = glm::length(enemy.getPosition() - playerPos);
-				if (distance < nearestDistance) 
+				float angle = calculateAngleToEnemy(enemy.getPosition());
+
+				// Check if the enemy is within the shooting range and has the smallest angle
+				if (distance < nearestDistance && angle < smallestAngle)
 				{
+					smallestAngle = angle;
 					nearestDistance = distance;
-					nearestEnemy = &enemy;
+					targetEnemy = &enemy;
 				}
 			}
 		}
 
-		if (nearestEnemy) 
+		if (targetEnemy)
 		{
-			nearestEnemy->takeDamage(20); // Adjust damage value as necessary
+			targetEnemy->takeDamage(10); // Adjust damage value as necessary
 		}
 
 		lastShotTime = glfwGetTime(); // Update the last shot time
@@ -658,22 +719,31 @@ void Game::UpdateGameplay()
 	{
 		if (glm::distance(it->getPosition(), playeritemPos) < 1.0f) 
 		{
+			irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
 			if (it->getType() == ItemType::HEALTH) 
 			{
 				m_player->health = std::min(m_player->health + 20, 100);
-				irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
-				if (soundEngine) 
+				if (soundEngine)
 				{
-					soundEngine->play2D("Music/p_med_kit.mp3");
+					irrklang::ISound* sound = soundEngine->play2D("Music/p_med_kit.mp3", false, true);
+					if (sound)
+					{
+						sound->setVolume(2.0f); // Set the volume to maximum for this sound
+						sound->setIsPaused(false); // Start playing the sound
+					}
 				}
 			}
 			else if (it->getType() == ItemType::AMMO) 
 			{
 				m_player->ammo += 10;
-				irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
 				if (soundEngine)
 				{
-					soundEngine->play2D("Music/p_ammo.ogg");					
+					irrklang::ISound* sound = soundEngine->play2D("Music/p_ammo.ogg", false, true);
+					if (sound)
+					{
+						sound->setVolume(2.0f);			// Set the volume to maximum for this sound
+						sound->setIsPaused(false);		// Start playing the sound
+					}
 				}
 			}
 			it = items.erase(it); // Remove the item from the list
@@ -711,7 +781,7 @@ void Game::ResetGame()
 {
 	// Reset player state
 	m_player->health = 100;
-	m_player->ammo = 100;	
+	m_player->ammo = 50;	
 	glm::vec3 spawnPoint = map->getPlayerSpawnPosition();
 	m_player = new Player(spawnPoint);
 	m_player->SetProjection(45.0f, 1280.0f / 720.0f, 0.1f, 100.0f);
@@ -722,6 +792,11 @@ void Game::ResetGame()
 	for (const auto& pos : enemySpawnPoints)
 	{
 		enemies.emplace_back(createSoldier(pos));
+	}
+	vector<glm::vec3> ogreSpawnPoints = map->getEnemySpawnPositions("Ogre");
+	for (const auto& pos : ogreSpawnPoints)
+	{
+		enemies.emplace_back(createOgre(pos));
 	}
 
 	// Reset items

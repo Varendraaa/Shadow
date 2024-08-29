@@ -31,9 +31,10 @@ Enemy createSoldier(const glm::vec3& position)
 {
 	static std::vector<AnimationFrame> walkFrames;
 	static std::vector<AnimationFrame> attackFrames;
+	static std::vector<AnimationFrame> hurtFrames;
 	static std::vector<AnimationFrame> deathFrames;
 	
-	if (walkFrames.empty() && attackFrames.empty() && deathFrames.empty())
+	if (walkFrames.empty() && attackFrames.empty() && deathFrames.empty() && hurtFrames.empty())
 	{
 		vector<string> walkTextures =
 		{
@@ -51,6 +52,12 @@ Enemy createSoldier(const glm::vec3& position)
 		};
 		vector<int> attackDurations = { 100, 100 };
 
+		vector<string> hurtTextures =
+		{
+			"Sprites/Soldier/Death1.png"
+		};
+		vector<int> hurtDurations = { 150 };
+
 		vector<string> deathTextures =
 		{
 			"Sprites/Soldier/Death1.png",
@@ -63,6 +70,7 @@ Enemy createSoldier(const glm::vec3& position)
 
 		walkFrames = loadFrames(walkTextures, walkDurations);
 		attackFrames = loadFrames(attackTextures, attackDurations);
+		hurtFrames = loadFrames(hurtTextures, hurtDurations);
 		deathFrames = loadFrames(deathTextures, deathDurations);
 	}
 	// Enemy Parameters
@@ -70,16 +78,17 @@ Enemy createSoldier(const glm::vec3& position)
 	float size = 1.5f;
 	int damage = 5;
 
-	return Enemy(position, health, size, damage, walkFrames, attackFrames, deathFrames);
+	return Enemy(position, health, size, damage, walkFrames, attackFrames, hurtFrames, deathFrames);
 }
 
 Enemy createOgre(const glm::vec3& position)
 {
 	static std::vector<AnimationFrame> walkFrames;
 	static std::vector<AnimationFrame> attackFrames;
+	static std::vector<AnimationFrame> hurtFrames;
 	static std::vector<AnimationFrame> deathFrames;
 
-	if (walkFrames.empty() && attackFrames.empty() && deathFrames.empty())
+	if (walkFrames.empty() && attackFrames.empty() && deathFrames.empty() && hurtFrames.empty())
 	{
 		vector<string> walkTextures =
 		{
@@ -99,6 +108,12 @@ Enemy createOgre(const glm::vec3& position)
 		};
 		vector<int> attackDurations = { 100, 100 };
 
+		vector<string> hurtTextures =
+		{
+			"Sprites/Ogre/Death1.png"			
+		};
+		vector<int> hurtDurations = { 150 };
+
 		vector<string> deathTextures =
 		{
 			"Sprites/Ogre/Death1.png",
@@ -116,6 +131,7 @@ Enemy createOgre(const glm::vec3& position)
 
 		walkFrames = loadFrames(walkTextures, walkDurations);
 		attackFrames = loadFrames(attackTextures, attackDurations);
+		hurtFrames = loadFrames(hurtTextures, hurtDurations);
 		deathFrames = loadFrames(deathTextures, deathDurations);
 	}
 	// Enemy Parameters
@@ -123,5 +139,5 @@ Enemy createOgre(const glm::vec3& position)
 	float size = 1.8f;
 	int damage = 15;
 
-	return Enemy(position, health, size, damage, walkFrames, attackFrames, deathFrames);
+	return Enemy(position, health, size, damage, walkFrames, attackFrames, hurtFrames, deathFrames);
 }

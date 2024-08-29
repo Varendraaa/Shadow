@@ -95,7 +95,7 @@ void Item::render(const glm::mat4& view, const glm::mat4& projection, Shader& sh
 
     model *= billboard;
 
-	glm::vec3 size = glm::vec3(0.4f, 0.4f, 0.4f);
+	glm::vec3 size = glm::vec3(0.5f, 0.5f, 0.5f);
     model = glm::scale(model, size);
 
     shader.Use();

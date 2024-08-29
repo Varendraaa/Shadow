@@ -3,9 +3,9 @@
 
 Player::Player(glm::vec3& spawnPoint) :
 	Camera(spawnPoint + glm::vec3(0.0f, 0.8f, 0.0f)),
-	playerSize(0.5f, 1.0f, 0.5f),
+	playerSize(0.5f, 0.8f, 0.5f),
 	health(100),
-	ammo(100),
+	ammo(50),
 	shootCooldown(0.5f),
 	lastShotTime(0.0f)
 	
@@ -96,8 +96,13 @@ bool Player::Shoot()
 		irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
 		if (soundEngine) 
 		{
+			irrklang::ISound* sound = soundEngine->play2D("Music/w_rifle.ogg");
+			if (sound)
+			{ 
 			soundEngine->setSoundVolume(0.2f);
-			soundEngine->play2D("Music/w_rifle.ogg");
+			sound->setIsPaused(false);
+			}
+			
 		}
 		return true;
 	}

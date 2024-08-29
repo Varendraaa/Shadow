@@ -6,6 +6,7 @@
 Enemy::Enemy(const glm::vec3& position, int health, float size, int damage,
     const vector<AnimationFrame>& walkFrames,
     const vector<AnimationFrame>& attackFrames,
+    const vector<AnimationFrame>& hurtFrames,
     const vector<AnimationFrame>& deathFrames) :
     position(position),
     size(glm::vec3(size, size, size)),          // Adjust the size of the enemy
@@ -14,42 +15,20 @@ Enemy::Enemy(const glm::vec3& position, int health, float size, int damage,
     animationTime(0.0f),
     animationSpeed(0.1f),
     currentState(AnimationState::WALK),
+    previousState(AnimationState::WALK),
     isDead(false),
 	lastAttackTime(0.0f),
 	attackCooldown(1.0f),
     damage(damage),
 	walkFrames(walkFrames),
 	attackFrames(attackFrames),
+    hurtFrames(hurtFrames),
 	deathFrames(deathFrames)
 {
-    //loadAnimationFrames(walkFrames, walkTextures, walkDurations);
-    //loadAnimationFrames(attackFrames, attackTextures, attackDurations);
-    //loadAnimationFrames(deathFrames, deathTextures, deathDurations);
     setupMesh();
 }
 
-// Function to load the animation Frames
-//void Enemy::loadAnimationFrames(vector<AnimationFrame>& frames, const vector<string>& texturePaths, const vector<int>& frameDurations)
-//{
-//    if (texturePaths.size() != frameDurations.size())
-//    {
-//        cerr << "Texture paths and frame durations must be the same length" << endl;
-//        return;
-//    }
-//
-//    for (size_t i = 0; i < texturePaths.size(); ++i)
-//    {
-//        AnimationFrame frame;
-//        frame.textureID = TextureLoader::LoadTexture(texturePaths[i]);
-//        if (frame.textureID == 0) 
-//        {
-//            cerr << "Failed to load texture: " << texturePaths[i] << endl;
-//            continue;
-//        }
-//        frame.duration = frameDurations[i];
-//        frames.push_back(frame);
-//    }
-//}
+
 
 
 void Enemy::setupMesh() 
@@ -94,7 +73,7 @@ void Enemy::setupMesh()
 
 void Enemy::render(const glm::mat4& view, const glm::mat4& projection, Shader& shader)
 {
-    if (walkFrames.empty() || attackFrames.empty() || deathFrames.empty()) return;
+    if (walkFrames.empty() || attackFrames.empty() || hurtFrames.empty() || deathFrames.empty()) return;
 
     glBindVertexArray(VAO);
 
@@ -107,6 +86,10 @@ void Enemy::render(const glm::mat4& view, const glm::mat4& projection, Shader& s
 
     case AnimationState::ATTACK:
         currentTextureID = attackFrames[currentFrame].textureID;
+        break;
+
+    case AnimationState::HURT:
+        currentTextureID = hurtFrames[currentFrame].textureID;
         break;
 
     case AnimationState::DEATH:
@@ -146,27 +129,43 @@ void Enemy::render(const glm::mat4& view, const glm::mat4& projection, Shader& s
 
 void Enemy::update(float deltaTime)
 {
-    if (walkFrames.empty() || attackFrames.empty() || deathFrames.empty()) return;
+    if (walkFrames.empty() || attackFrames.empty() || hurtFrames.empty() || deathFrames.empty()) return;
 
     animationTime += deltaTime * 1000; // Convert deltaTime to milliseconds
 
     vector<AnimationFrame>& currentframes = (currentState == AnimationState::WALK) ? walkFrames :
-        (currentState == AnimationState::ATTACK) ? attackFrames : deathFrames;
+                                            (currentState == AnimationState::ATTACK) ? attackFrames : 
+                                            (currentState == AnimationState::HURT) ? hurtFrames : deathFrames;
 
     if (animationTime >= currentframes[currentFrame].duration)
     {
-        if (currentState == AnimationState::DEATH) 
+        if (currentState == AnimationState::DEATH)
         {
             // Ensure the death animation stops at the last frame
-            if (currentFrame < currentframes.size() - 1) 
+            if (currentFrame < currentframes.size() - 1)
+            {
+                currentFrame++;
+            }
+            animationTime = 0.0f;
+        }
+        else if (currentState == AnimationState::HURT)
+        {
+            // If hurt animation is complete, return to the previous state
+            if (currentFrame >= currentframes.size() - 1)
+            {
+                setState(previousState);
+            }
+            else
             {
                 currentFrame++;
             }
             animationTime = 0.0f;
         }
         else
-        currentFrame = (currentFrame + 1) % currentframes.size();
-        animationTime = 0.0f;
+        {
+            currentFrame = (currentFrame + 1) % currentframes.size();
+            animationTime = 0.0f;
+        }
     }
 
     if (isDead) return;
@@ -176,6 +175,12 @@ void Enemy::setState(AnimationState newState)
 {
     if (currentState != newState)
     {
+        if (newState == AnimationState::HURT)
+        {
+            previousState = currentState; // Store the current state as previous state
+
+        }
+
         currentState = newState;
         currentFrame = 0;
         animationTime = 0.0f;
@@ -220,7 +225,24 @@ void Enemy::takeDamage(int damage)
     {
         health = 0;
         isDead = true;
+        setState(AnimationState::DEATH);
+        irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
+        if (soundEngine)
+        {
+            soundEngine->play2D("Music/p_death.ogg"); // Play death sound
+        }
     }
+    else if (currentState != AnimationState::HURT)
+    {
+        previousState = currentState;
+        setState(AnimationState::HURT);
+        irrklang::ISoundEngine* soundEngine = SoundManager::getInstance().getSoundEngine();
+        if (soundEngine)
+        {
+            soundEngine->play2D("Music/p_hurt.ogg"); // Play hurt sound
+        }
+    }
+   
 }
 
 bool Enemy::isInAttackRange(const glm::vec3& targetPosition, float attackRange)

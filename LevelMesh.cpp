@@ -5,10 +5,7 @@
 LevelMesh::LevelMesh(const string& levelPath) : 
     VAO(0), 
     VBO(0), 
-    EBO(0), 
-    wallTexture(0), 
-    floorTexture(0), 
-    ceilingTexture(0)
+    EBO(0)   
 {
 	loadTextures();
     generateMesh(levelPath);
@@ -35,7 +32,12 @@ void LevelMesh::loadTextures()
         {7, "Textures/Level/7.png"},
         {8, "Textures/Level/8.png"},
         {9, "Textures/Level/9.png"},
-        {10, "Textures/Level/10.png"}
+        {10, "Textures/Level/10.png"},
+		{11, "Textures/Level/11.png"},
+		{12, "Textures/Level/12.png"},
+        {13, "Textures/Level/13.png"},
+		{14, "Textures/Level/14.png"},
+        {15, "Textures/Level/15.png"}
     };
 
 	// Load textures based on the mapping
@@ -44,9 +46,6 @@ void LevelMesh::loadTextures()
 		textureIDs[pair.first] = TextureLoader::LoadTexture(pair.second);
 	}
 
-    //wallTexture = TextureLoader::LoadTexture("Textures/Levels/17.png");
-    //floorTexture = TextureLoader::LoadTexture("Textures/Wall2.png");
-    //ceilingTexture = TextureLoader::LoadTexture("Textures/Wall.png");
 }
 
 bool LevelMesh::isBlocked(int x, int z, const TileLayer& layout) 
@@ -70,7 +69,7 @@ void LevelMesh::generateMesh(const string& levelPath)
 
     TileLayer floorLayer = map.getLayer("Floors");
     TileLayer wallLayer = map.getLayer("Walls");
-    TileLayer ceilingLayer = map.getLayer("Floors");
+    TileLayer ceilingLayer = map.getLayer("Ceilings");
 
     // Clear previous data, if any
     vertices.clear();
@@ -79,12 +78,14 @@ void LevelMesh::generateMesh(const string& levelPath)
     wallIndices.clear();
     ceilingIndices.clear();
 
+
     // Create the floor mesh
     for (int i = 0; i < floorLayer.height; ++i)
     {
         for (int j = 0; j < floorLayer.width; ++j)
         {
-            if (floorLayer.data[i * floorLayer.width + j] != 0)
+            int tileID = floorLayer.data[i * floorLayer.width + j];
+            if (tileID != 0)
             {
                 // Add only the top face of the cube
                 glm::vec3 v0 = { j    , 0.0f, i };
@@ -93,19 +94,20 @@ void LevelMesh::generateMesh(const string& levelPath)
                 glm::vec3 v3 = { j    , 0.0f, i + 1 };
                 glm::vec3 normal = { 0.0f, 1.0f, 0.0f };
 
-                addFace(v0, v3, v2, v1, normal, floorIndices); // Correct order for top face
+                addFace(v0, v3, v2, v1, normal, floorIndices, textureIDs[tileID]); // Correct order for top face
             }
         }
     }
 
-    float ceilingHeight = 2.0f;
+    float ceilingHeight = 1.5f;
 
     // Create ceiling mesh
     for (int i = 0; i < ceilingLayer.height; ++i)
     {
         for (int j = 0; j < ceilingLayer.width; ++j)
         {
-            if (ceilingLayer.data[i * ceilingLayer.width + j] != 0)
+            int tileID = ceilingLayer.data[i * ceilingLayer.width + j];
+            if (tileID != 0)
             {
                 // Add only the bottom face of the cube
                 glm::vec3 v0 = { j    , ceilingHeight, i };
@@ -114,18 +116,19 @@ void LevelMesh::generateMesh(const string& levelPath)
                 glm::vec3 v3 = { j    , ceilingHeight, i + 1 };
                 glm::vec3 normal = { 0.0f, -1.0f, 0.0f };
 
-                addFace(v0, v1, v2, v3, normal, ceilingIndices); // Correct order for bottom face
+                addFace(v0, v1, v2, v3, normal, ceilingIndices, textureIDs[tileID]); // Correct order for bottom face
             }
         }
     }
 
-    float wallHeight = 2.0f;      // Should match ceiling height
+    float wallHeight = 1.5f;      // Should match ceiling height
     // Create wall mesh
     for (int i = 0; i < wallLayer.height; ++i)
     {
         for (int j = 0; j < wallLayer.width; ++j)
         {
-            if (wallLayer.data[i * wallLayer.width + j] != 0)
+            int tileID = wallLayer.data[i * wallLayer.width + j];
+            if (tileID != 0)
             {
                 // Back face
                 if (!isBlocked(j, i + 1, wallLayer))
@@ -136,7 +139,7 @@ void LevelMesh::generateMesh(const string& levelPath)
                     glm::vec3 v3 = { j + 1, 0.0f, i + 1 };
                     glm::vec3 normal = { 0.0f, 0.0f, 1.0f };
 
-                    addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for back face
+                    addFace(v0, v3, v2, v1, normal, wallIndices, textureIDs[tileID]); // Correct order for back face
                 }
 
                 // Front face
@@ -148,7 +151,7 @@ void LevelMesh::generateMesh(const string& levelPath)
                     glm::vec3 v3 = { j + 1, 0.0f, i };
                     glm::vec3 normal = { 0.0f, 0.0f, -1.0f };
 
-                    addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for front face
+                    addFace(v0, v3, v2, v1, normal, wallIndices, textureIDs[tileID]); // Correct order for front face
                 }
 
                 // Left face
@@ -160,7 +163,7 @@ void LevelMesh::generateMesh(const string& levelPath)
                     glm::vec3 v3 = { j    , 0.0f, i + 1 };
                     glm::vec3 normal = { -1.0f, 0.0f, 0.0f };
 
-                    addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for left face
+                    addFace(v0, v3, v2, v1, normal, wallIndices, textureIDs[tileID]); // Correct order for left face
                 }
 
                 // Right face
@@ -172,115 +175,11 @@ void LevelMesh::generateMesh(const string& levelPath)
                     glm::vec3 v3 = { j + 1, 0.0f, i + 1 };
                     glm::vec3 normal = { 1.0f, 0.0f, 0.0f };
 
-                    addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for right face
+                    addFace(v0, v3, v2, v1, normal, wallIndices, textureIDs[tileID]); // Correct order for right face
                 }
             }
         }
     }
-
-
-
-
-
-    //// Create the floor mesh
-    //for (int i = 0; i < levelHeight; ++i) 
-    //{
-    //    for (int j = 0; j < levelWidth; ++j) 
-    //    {
-    //        if (floorLayout[i][j] == 1) 
-    //        {
-    //            // Add only the top face of the cube
-    //            glm::vec3 v0 = { j    , 0.0f, i };
-    //            glm::vec3 v1 = { j + 1, 0.0f, i };
-    //            glm::vec3 v2 = { j + 1, 0.0f, i + 1 };
-    //            glm::vec3 v3 = { j    , 0.0f, i + 1 };
-    //            glm::vec3 normal = { 0.0f, 1.0f, 0.0f };
-
-    //            addFace(v0, v3, v2, v1, normal, floorIndices); // Correct order for top face
-    //        }
-    //    }
-    //}
-
-    //float ceilingHeight = 3.0f;
-
-    //// Create ceiling mesh
-    //for (int i = 0; i < levelHeight; ++i) 
-    //{
-    //    for (int j = 0; j < levelWidth; ++j) 
-    //    {
-    //        if (ceilingLayout[i][j] == 1) 
-    //        {
-    //            // Add only the bottom face of the cube
-    //            glm::vec3 v0 = { j    , ceilingHeight, i };
-    //            glm::vec3 v1 = { j + 1, ceilingHeight, i };
-    //            glm::vec3 v2 = { j + 1, ceilingHeight, i + 1 };
-    //            glm::vec3 v3 = { j    , ceilingHeight, i + 1 };
-    //            glm::vec3 normal = { 0.0f, -1.0f, 0.0f };
-
-    //            addFace(v0, v1, v2, v3, normal, ceilingIndices); // Correct order for bottom face
-    //        }
-    //    }
-    //}
-
-
-    //float wallHeight = 3.0f;      // Should match ceiling height
-    //// Create wall mesh
-    //for (int i = 0; i < levelHeight; ++i) 
-    //{
-    //    for (int j = 0; j < levelWidth; ++j) 
-    //    {
-    //        if (wallLayout[i][j] == 1) 
-    //        {
-    //            // Back face
-    //            if (!isBlocked(j, i + 1, wallLayout)) 
-    //            {
-    //                glm::vec3 v0 = { j    , 0.0f, i + 1 };
-    //                glm::vec3 v1 = { j    , wallHeight, i + 1 };
-    //                glm::vec3 v2 = { j + 1, wallHeight, i + 1 };
-    //                glm::vec3 v3 = { j + 1, 0.0f, i + 1 };
-    //                glm::vec3 normal = { 0.0f, 0.0f, 1.0f };
-
-    //                addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for back face
-    //            }
-
-    //            // Front face
-    //            if (!isBlocked(j, i - 1, wallLayout)) 
-    //            {
-    //                glm::vec3 v0 = { j    , 0.0f, i };
-    //                glm::vec3 v1 = { j    , wallHeight, i };
-    //                glm::vec3 v2 = { j + 1, wallHeight, i };
-    //                glm::vec3 v3 = { j + 1, 0.0f, i };
-    //                glm::vec3 normal = { 0.0f, 0.0f, -1.0f };
-
-    //                addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for front face
-    //            }
-
-    //            // Left face
-    //            if (!isBlocked(j - 1, i, wallLayout)) 
-    //            {
-    //                glm::vec3 v0 = { j    , 0.0f, i };
-    //                glm::vec3 v1 = { j    , wallHeight, i };
-    //                glm::vec3 v2 = { j    , wallHeight, i + 1 };
-    //                glm::vec3 v3 = { j    , 0.0f, i + 1 };
-    //                glm::vec3 normal = { -1.0f, 0.0f, 0.0f };
-
-    //                addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for left face
-    //            }
-
-    //            // Right face
-    //            if (!isBlocked(j + 1, i, wallLayout)) 
-    //            {
-    //                glm::vec3 v0 = { j + 1, 0.0f, i };
-    //                glm::vec3 v1 = { j + 1, wallHeight, i };
-    //                glm::vec3 v2 = { j + 1, wallHeight, i + 1 };
-    //                glm::vec3 v3 = { j + 1, 0.0f, i + 1 };
-    //                glm::vec3 normal = { 1.0f, 0.0f, 0.0f };
-
-    //                addFace(v0, v3, v2, v1, normal, wallIndices); // Correct order for right face
-    //            }
-    //        }
-    //    }
-    //}
 
     // Combine all indices into a single vector for the EBO
     indices.insert(indices.end(), floorIndices.begin(), floorIndices.end());
@@ -297,19 +196,31 @@ void LevelMesh::draw()
     // Bind the vertex array
     glBindVertexArray(VAO);
 
-    // Bind floor texture and draw floor part of the mesh
-    glBindTexture(GL_TEXTURE_2D, floorTexture);
-    glDrawElements(GL_TRIANGLES, floorIndices.size(), GL_UNSIGNED_INT, 0);
+    // Draw floor part of the mesh
+    for (size_t i = 0; i < floorIndices.size(); i += 6)
+    {
+        unsigned int textureID = vertices[floorIndices[i]].texID;
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)(i * sizeof(unsigned int)));
+    }
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    // Bind wall texture and draw wall part of the mesh
-    glBindTexture(GL_TEXTURE_2D, wallTexture);
-    glDrawElements(GL_TRIANGLES, wallIndices.size(), GL_UNSIGNED_INT, (void*)(floorIndices.size() * sizeof(unsigned int)));
+    // Draw wall part of the mesh
+    for (size_t i = 0; i < wallIndices.size(); i += 6)
+    {
+        unsigned int textureID = vertices[wallIndices[i]].texID;
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)((floorIndices.size() + i) * sizeof(unsigned int)));
+    }
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    // Bind ceiling texture and draw ceiling part of the mesh
-    glBindTexture(GL_TEXTURE_2D, ceilingTexture);
-    glDrawElements(GL_TRIANGLES, ceilingIndices.size(), GL_UNSIGNED_INT, (void*)((floorIndices.size() + wallIndices.size()) * sizeof(unsigned int)));
+    // Draw ceiling part of the mesh
+    for (size_t i = 0; i < ceilingIndices.size(); i += 6)
+    {
+        unsigned int textureID = vertices[ceilingIndices[i]].texID;
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)((floorIndices.size() + wallIndices.size() + i) * sizeof(unsigned int)));
+    }
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // Unbind the vertex array
@@ -322,9 +233,12 @@ void LevelMesh::cleanup()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    glDeleteTextures(1, &wallTexture);
-    glDeleteTextures(1, &floorTexture);
-    glDeleteTextures(1, &ceilingTexture);
+
+    // Delete textures
+    for (const auto& pair : textureIDs)
+    {
+        glDeleteTextures(1, &pair.second);
+    }
 }
 
 // Setup the mesh by creating VAO, VBO, and EBO and binding vertex attributes
@@ -362,7 +276,7 @@ void LevelMesh::setupMesh()
 }
 
 // Add a specific face of the cube at the specified position and add its indices to the target indices
-void LevelMesh::addFace(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 normal, vector<unsigned int>& targetIndices) 
+void LevelMesh::addFace(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 normal, vector<unsigned int>& targetIndices, unsigned int textureID) 
 {
     // Offset for calculating indices
     GLuint baseIndex = vertices.size();
@@ -379,10 +293,10 @@ void LevelMesh::addFace(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, 
     // Create and add vertices
     Vertex verticesArray[4] = 
     {
-        {v0, normal, texCoords[0]},
-        {v1, normal, texCoords[1]},
-        {v2, normal, texCoords[2]},
-        {v3, normal, texCoords[3]}
+        {v0, normal, texCoords[0], textureID},
+        {v1, normal, texCoords[1], textureID},
+        {v2, normal, texCoords[2], textureID},
+        {v3, normal, texCoords[3], textureID}
     };
 
     for (int i = 0; i < 4; ++i) 

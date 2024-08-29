@@ -7,15 +7,23 @@ Pathfinding::Pathfinding(int width, int height) : width(width), height(height) {
 bool Pathfinding::isValid(const glm::ivec2& position, const TileLayer& wallLayer) 
 {
     return (position.x >= 0 && position.x < width &&
-            position.y >= 0 && position.y < height &&
-            wallLayer.data[position.y * wallLayer.width + position.x] == 0);
+        position.y >= 0 && position.y < height &&
+        wallLayer.data[position.y * wallLayer.width + position.x] == 0);
 }
 
 // BFS algorithm to find the shortest path from start to goal
 vector<glm::ivec2> Pathfinding::findPath(const glm::ivec2& start, const glm::ivec2& goal, const TileLayer& wallLayer) 
 {
-    vector<glm::ivec2> path;        // Vector to store the path
-    queue<Node> q;                  // Queue for BFS
+    
+    // Check if there is a direct line of sight
+    if (hasLineOfSight(start, goal, wallLayer))
+    {
+        return { goal }; // Direct path
+    }
+
+	// If no direct Line of Sight, use BFS to find the path
+    vector<glm::ivec2> path; // Vector to store the path
+    queue<Node> q;           // Queue for BFS
 
     // Reset the visited vector
     visited = vector<vector<bool>>(height, vector<bool>(width, false));
@@ -60,6 +68,7 @@ vector<glm::ivec2> Pathfinding::findPath(const glm::ivec2& start, const glm::ive
             }
         }
     }
+
     // If no path is found, return an empty path
     return path;
 }
@@ -67,9 +76,9 @@ vector<glm::ivec2> Pathfinding::findPath(const glm::ivec2& start, const glm::ive
 // Function to check if there is a line of sight between two points
 bool Pathfinding::hasLineOfSight(const glm::ivec2& start, const glm::ivec2& goal, const TileLayer& wallLayer) 
 {
-    int x0 = start.x;
+    int x0 = start.x;       // Start Point Coordinates
     int y0 = start.y;
-    int x1 = goal.x;
+	int x1 = goal.x;        // Goal Point Coordinates
     int y1 = goal.y;
 
     int dx = abs(x1 - x0);
@@ -90,7 +99,7 @@ bool Pathfinding::hasLineOfSight(const glm::ivec2& start, const glm::ivec2& goal
             x0 += sx;
         }
         if (e2 < dx) 
-        {
+{
             err += dx;
             y0 += sy;
         }

@@ -15,8 +15,7 @@ struct Node
     Node(const glm::ivec2& position, Node* parent) : position(position), parent(parent) {}
 };
 
-class Pathfinding 
-{
+class Pathfinding {
 public:
     // Constructor to initialize the grid dimensions
     Pathfinding(int width, int height);

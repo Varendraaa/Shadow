@@ -64,11 +64,11 @@ private:
 	void UpdateWinScreen();
 	void UpdateGameOverScreen();
 
+	int countLevels();
 	void loadLevel(GLint levelNumber);
 
 	// Game Subsystems
 	Window* m_window;
-	//Camera* m_camera;
 	Shader* shaderprogram;
 	HUD* hud;
 	Player* m_player;

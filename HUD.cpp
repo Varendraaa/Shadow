@@ -94,6 +94,27 @@ void HUD::Render()
 	ImGui::Text("Level: %d", currentLevel);
 
 
+
+	// Draw reticle in the center of the screen
+	ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+	// Calculate the center of the screen
+	ImVec2 center = ImVec2(windowSize.x / 2, windowSize.y / 2 + 25);
+
+	// Define the size and thickness of the reticle
+	float reticleSize = 10.0f;
+	float reticleThickness = 2.0f;
+	ImU32 reticleColor = IM_COL32(155, 155, 155, 255); // White color
+
+	// Draw horizontal line
+	drawList->AddLine(ImVec2(center.x - reticleSize, center.y), ImVec2(center.x + reticleSize, center.y), reticleColor, reticleThickness);
+
+	// Draw vertical line
+	drawList->AddLine(ImVec2(center.x, center.y - reticleSize), ImVec2(center.x, center.y + reticleSize), reticleColor, reticleThickness);
+
+
+
+
 	// Pop custom font if used
 	if (HUDfont) 
 	{

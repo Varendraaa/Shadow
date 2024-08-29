@@ -29,10 +29,11 @@ private:
     vector<unsigned int> wallIndices;
     vector<unsigned int> ceilingIndices;
 
+	map<int, unsigned int> textureIDs;
     GLuint VAO, VBO, EBO;
-    GLuint floorTexture, wallTexture, ceilingTexture;
+    //GLuint floorTexture, wallTexture, ceilingTexture;
 
-    void addFace(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 normal, vector<unsigned int>& targetIndices);
+    void addFace(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec3 normal, vector<unsigned int>& targetIndices, unsigned int textureID);
     void setupMesh();
 
     bool isBlocked(int x, int z, const TileLayer& layout);
