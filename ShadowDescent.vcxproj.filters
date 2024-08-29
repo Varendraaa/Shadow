@@ -187,16 +187,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TestMap.json">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="shader.vert">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shader.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="TestLvl.tmx">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="New folder\Test.json">
@@ -208,26 +202,6 @@
     <None Include="Levels\Level1.tmx">
       <Filter>Resource Files\Map Files</Filter>
     </None>
-    <None Include="Levels\Level3.tmx">
-      <Filter>Resource Files\Map Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Textures\LavaFloor.png">
-      <Filter>Resource Files\Textures</Filter>
-    </Image>
-    <Image Include="test_texture.png">
-      <Filter>Resource Files\Textures</Filter>
-    </Image>
-    <Image Include="stone_tex.jpg">
-      <Filter>Resource Files\Textures</Filter>
-    </Image>
-    <Image Include="Neon.jpg">
-      <Filter>Resource Files\Textures</Filter>
-    </Image>
-    <Image Include="Sprites\spritesheet.png">
-      <Filter>Resource Files\Textures</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="New folder\FloorLayout.txt">

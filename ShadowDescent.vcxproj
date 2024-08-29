@@ -201,19 +201,9 @@
   <ItemGroup>
     <None Include="..\Level1Json.json" />
     <None Include="Levels\Level1.tmx" />
-    <None Include="Levels\Level3.tmx" />
     <None Include="New folder\Test.json" />
     <None Include="shader.frag" />
     <None Include="shader.vert" />
-    <None Include="TestLvl.tmx" />
-    <None Include="TestMap.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Neon.jpg" />
-    <Image Include="Sprites\spritesheet.png" />
-    <Image Include="stone_tex.jpg" />
-    <Image Include="test_texture.png" />
-    <Image Include="Textures\LavaFloor.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="New folder\FloorLayout.txt" />
