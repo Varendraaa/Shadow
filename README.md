@@ -14,6 +14,7 @@ Would not recommend anyone to do this, 12+ hour days programming, and bugfixing 
 
 It is my first foray into game development and graphics programming, so features and components were implemented as I was learning the OpenGL pipeline.
 There are many things I would do differently, having learnt the lessons I did during this process. If I decide to refactor the implementation into a more streamlined, optimised product, I will link that repository here. <br/>
+[Download the game exe here!](https://github.com/Varendraaa/Shadow/blob/1b451607d9d1c161cf9a6a6c3657cb0284ea49ad/Game%20Executable.zip)
 
 ## Libaries and Frameworks Used
 - OpenGL
