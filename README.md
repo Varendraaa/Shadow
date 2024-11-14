@@ -2,7 +2,7 @@
 This is an old school, Doom/Wolfenstein inspired first person shooter and base engine **entirely coded in C++ and GLSL**, using OpenGL 4.4 as the graphics API, and various other low level libraries to aid in core functionality.<br/>
 It was done for my MSc thesis project at the University of Dundee.<br/>
 **It is in no way, shape or form meant for any commercial use or application.<br/>**  
-![Watch the Video]([https://github.com/Varendraaa/Shadow/blob/d5b7434ad995dcbed106896e55d4117358ae1fc3/Screenshot%201.png](https://github.com/Varendraaa/Shadow/blob/e36817077b6495cfef858793eaae1713fece1d61/Shadow.mp4)
+![Watch the Video](https://github.com/Varendraaa/Shadow/blob/e36817077b6495cfef858793eaae1713fece1d61/Shadow.mp4)
 
 
 
