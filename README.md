@@ -27,13 +27,13 @@ There are many things I would do differently, having learnt the lessons I did du
 - ImGui
   
 ## Feature List
-- BFS Pathfinding Algorithm for enemies to detect player.
-- Enemy state machine that switches between Walking, Attacking and Death based on distance between enemy and player, and enemy's health.
-- Rudimentary collision detection based on evaluating object position relative to terrain.
+- BFS Pathfinding Algorithm for enemies to detect and move to the player's last known location.
 - Texture Cycling as a means of pseudo-animation of sprites (was not possible to introduce model loading via libraries like Assimp in the timeframe).
-- Sound playback via implementation of the irrKlang library.
+- Enemy state machine that switches between Walking, Attacking and Death animations based on distance between enemy and player, and enemy's health.
 - Enemy Factory setup based on the decorator design pattern to allow for efficient implementation of new enemies into the game.
-- Dynamic adjustment of sprite textures to properly work with direct spotlight effects.
+- Rudimentary collision detection based on evaluating object position relative to terrain.
+- Sound playback via integration of the irrKlang library. 
+- Dynamic billboarding and adjustment of sprite textures to properly work with direct spotlight effects.
 
 ![image](https://github.com/Varendraaa/Shadow/blob/d5b7434ad995dcbed106896e55d4117358ae1fc3/Screenshot%202024-08-12%20150849.png)
 
