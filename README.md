@@ -2,9 +2,9 @@
 This is an old school, Doom/Wolfenstein inspired first person shooter and base engine **entirely coded in C++ and GLSL**, using OpenGL 4.4 as the graphics API, and various other low level libraries to aid in core functionality.<br/>
 It was done for my MSc thesis project at the University of Dundee.<br/>
 **It is in no way, shape or form meant for any commercial use or application.<br/>**  
-![image]([https://github.com/Varendraaa/Shadow/blob/d5b7434ad995dcbed106896e55d4117358ae1fc3/Screenshot%201.png](https://github.com/Varendraaa/Shadow/blob/e36817077b6495cfef858793eaae1713fece1d61/Shadow.mp4)
+![Watch the Video]([https://github.com/Varendraaa/Shadow/blob/d5b7434ad995dcbed106896e55d4117358ae1fc3/Screenshot%201.png](https://github.com/Varendraaa/Shadow/blob/e36817077b6495cfef858793eaae1713fece1d61/Shadow.mp4)
 
-[![Watch the video](https://i.sstatic.net/Vp2cE.png)](https://youtu.be/vt5fpE0bzSY)
+
 
 It uses the Tiled Map Editor, and the tmx files it generates, as layout data for generating walls, ceilings, floors and their associated textures. It also defines the location data for enemy and item spawns.<br/>
 It is designed for easy addition of new game objects, and uses billboarding sprites and texture cycling to create animations. <br/>  
