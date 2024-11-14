@@ -9,7 +9,7 @@ It is designed for easy addition of new game objects, and uses billboarding spri
 ![image](https://github.com/Varendraaa/Shadow/blob/d5b7434ad995dcbed106896e55d4117358ae1fc3/Screenshot%202024-08-07%20030018.png)
 
 ## Fair Warning
-**The game and its base engine was created in a very limited development window of around 7 weeks**, learning OpenGL and thesis writing also needed some time :( <br/>
+**The game and its base engine was created in a very limited, harsh development window of around 8 weeks**, as I was learning OpenGL and writing my masters thesis also needed some time. <br/>
 Would not recommend anyone to do this, 12+ hour days programming, and bugfixing is hell. <br/>
 
 It is my first foray into game development and graphics programming, so features and components were implemented as I was learning the OpenGL pipeline.
